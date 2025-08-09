@@ -21,7 +21,7 @@ type Change = {
 
 type SendResult = 'accepted' | 'rejected' | 'retry';
 
-export default class ChangeLogSynchronizer {
+export class ChangeLogSynchronizer {
 	#db: PGliteWithLive;
 	#position: number;
 
