@@ -31,7 +31,8 @@ export async function POST({ request }) {
 		const body = await request.json();
 		data = transactionsSchema.parse(body);
 	} catch (err: unknown) {
-		return json({ errors: err.errors }, { status: 400 });
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return json({ errors: (err as any).errors }, { status: 400 });
 	}
 
 	const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);

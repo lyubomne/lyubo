@@ -1,5 +1,11 @@
-<script>
-	import loadPGlite from '$lib/db/db.js';
+<script lang="ts">
+	import { LyuboTable } from '$lib/containers/LyuboTable';
+</script>
+
+<LyuboTable />
+
+<!-- <script lang="ts">
+	import { setDB } from '$lib/db';
 	import ChangeLogSynchronizer from '$lib/db/sync.js';
 	import { v4 as uuidv4 } from 'uuid';
 	import { onMount, tick } from 'svelte';
@@ -7,37 +13,7 @@
 	let lyuboList = $state([]);
 	let isEditing = $state(false);
 
-	let db = $state();
 	let writePathSync = $state();
-
-	onMount(() => {
-		let liveDb;
-		async function init() {
-			const pglite = await loadPGlite();
-
-			writePathSync = new ChangeLogSynchronizer(pglite);
-			writePathSync.start();
-
-			tick().then(() => {
-				db = pglite;
-
-				liveDb = db.live.query('SELECT * FROM lyubo ORDER BY created_at', [], (res) => {
-					lyuboList = res.rows;
-				});
-			});
-		}
-
-		init();
-
-		return () => {
-			if (liveDb) {
-				liveDb.then(({ unsubscribe }) => unsubscribe());
-			}
-			if (writePathSync) {
-				writePathSync.stop();
-			}
-		};
-	});
 
 	async function createItem(event) {
 		event.preventDefault();
@@ -50,11 +26,7 @@
 		const review = formData.get('review');
 		const favorite = formData.get('favorite') !== null;
 
-		// You can now use the data as an object
-		const item = { name, rating, review, favorite };
-		console.log(item);
-
-		await db.sql`
+		await dbStore.db.sql`
 		  INSERT INTO lyubo (
 		    id,
 		    name,
@@ -94,7 +66,7 @@
 			created_at: item.created_at
 		};
 
-		await db.sql`
+		await dbStore.db.sql`
         UPDATE lyubo
         SET name = ${updated.name},
             rating = ${updated.rating},
@@ -111,7 +83,7 @@
 	async function deleteItem(event, item) {
 		event.preventDefault();
 
-		await db.sql`
+		await dbStore.db.sql`
       DELETE FROM lyubo
         WHERE id = ${item.id}
     `;
@@ -158,4 +130,4 @@
 		</label>
 		<button type="submit">Add</button>
 	</form>
-</div>
+</div> -->
