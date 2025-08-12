@@ -1,12 +1,12 @@
-<script lang="ts" generics="TTableData extends IBaseTableData">
-	import type { IBaseTableData, ITableProps } from './types';
+<script lang="ts">
+	import { getTableContext } from './context.svelte';
 
-	const { columns }: Pick<ITableProps<TTableData>, 'columns'> = $props();
+	const tableContext = getTableContext();
 </script>
 
 <thead>
 	<tr>
-		{#each columns as column (column.name)}
+		{#each tableContext.columns as column (column.name)}
 			<th>{column.title}</th>
 		{/each}
 	</tr>

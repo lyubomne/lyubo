@@ -1,18 +1,26 @@
-<script lang="ts" generics="TTableData extends IBaseTableData">
+<script lang="ts">
 	import { getNestedValues } from '$lib/common/utils';
-	import type { IBaseTableData, ITableProps } from './types';
+	import { getTableContext } from './context.svelte';
 
-	const { columns, data }: ITableProps<TTableData> = $props();
+	const tableContext = getTableContext();
 </script>
 
 <tbody>
-	{#each data as dataItem (dataItem.id)}
+	{#each tableContext.data as dataItem (dataItem.id)}
 		<tr>
-			{#each columns as column (column.name)}
-				<th>
-					{column.renderer?.(getNestedValues(dataItem, column.name)) ??
-						getNestedValues(dataItem, column.name)}
-				</th>
+			{#each tableContext.columns as column (column.name)}
+				<td>
+					{#if column.renderer}
+						{@render column.renderer({
+							value: getNestedValues(dataItem, column.name),
+							name: column.name,
+							...column.rendererProps
+						})}
+						<!-- {column.renderer({ value: getNestedValues(dataItem, column.name), name: column.name })} -->
+					{:else}
+						{getNestedValues(dataItem, column.name)}
+					{/if}
+				</td>
 			{/each}
 		</tr>
 	{/each}
