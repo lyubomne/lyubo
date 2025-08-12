@@ -4,6 +4,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from '$env/static/private';
 import { createClient } from '@supabase/supabase-js';
 
 // TODO: Improve validation schema for rating field
+// TODO: Reuse value part from lyubo schema
 const transactionsSchema = z.array(
 	z.object({
 		id: z.string(),
