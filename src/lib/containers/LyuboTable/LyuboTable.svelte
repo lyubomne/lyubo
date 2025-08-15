@@ -4,8 +4,9 @@
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
 	import { Table, type ITableColumns } from '$lib/components/Table';
-	import { createTableInputRenderer } from '$lib/components/TableInput';
+	import { createTableInputRenderer } from './components/TableInput';
 	import { validationSchema } from './validationSchema';
+	import { createTableTagsSelectorRenderer } from './components/TableTagsSelector';
 
 	let lyuboDBLive: TNillable<LiveDB<ILyuboTable>> = $state();
 	const dbStore = getDB();
@@ -38,13 +39,14 @@
 		},
 		{
 			name: 'tags',
-			title: 'Tags'
-			// renderer: SelectorSnippet,
-			// rendererProps: {
-			// 	validationSchema,
-			// 	options: ['a', 'b'],
-			// 	multi: true
-			// }
+			title: 'Tags',
+			...createTableTagsSelectorRenderer({
+				validationSchema,
+				items: [
+					{ id: 'Test', name: 'Test' },
+					{ id: 'Test2', name: 'Test2' }
+				]
+			})
 		},
 		{
 			name: 'favorite',

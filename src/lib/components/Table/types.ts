@@ -16,12 +16,9 @@ export interface IBaseTableRendererSnippetProps<
 export interface ITableColumn<TTableData extends IBaseTableData, TKey extends string> {
 	name: TKey;
 	title: string;
-	renderer?: Snippet<[IBaseTableRendererSnippetProps<TTableData, TKey>]>;
-	// TODO: Формально это не работает, потому что тебе надо указать уникалный сниппет для каждого случая в массиве
-	// Сделать эо ты можешь только на уровне ITableColumns
-	// Но там ты опереируешь только ITableData и не можешь задать разные вариации пропсов для сниппетов.
-	// Поэтому тут пока видится вариант в лоб, указывать redererProps тут как object,
-	// А на месте уже определять различные createInput, createSelector
+	// TODO: Improve type for rendererProps argument inside Snippet
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	renderer?: Snippet<[IBaseTableRendererSnippetProps<TTableData, TKey> & { rendererProps: any }]>;
 	rendererProps?: object;
 }
 
