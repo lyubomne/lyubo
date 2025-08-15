@@ -14,7 +14,7 @@
 						{@render column.renderer({
 							value: getNestedValues(dataItem, column.name),
 							name: column.name,
-							...column.rendererProps
+							rendererProps: column.rendererProps ?? {}
 						})}
 						<!-- {column.renderer({ value: getNestedValues(dataItem, column.name), name: column.name })} -->
 					{:else}
