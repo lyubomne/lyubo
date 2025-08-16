@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS lyubo_synced (
   review TEXT,
   tags TEXT[] NOT NULL,
   favorite BOOLEAN NOT NULL,
+  watched_on TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   -- Bookkeeping column.
   write_id UUID
@@ -29,6 +30,7 @@ CREATE TABLE IF NOT EXISTS lyubo_local (
   review TEXT,
   tags TEXT[],
   favorite BOOLEAN,
+  watched_on TEXT,
   created_at TIMESTAMP WITH TIME ZONE,
   -- Bookkeeping columns.
   changed_columns TEXT[],
@@ -65,6 +67,11 @@ CREATE OR REPLACE VIEW lyubo AS
         THEN local.favorite
         ELSE synced.favorite
       END AS favorite,
+    CASE
+      WHEN 'watched_on' = ANY(local.changed_columns)
+        THEN local.watched_on
+        ELSE synced.watched_on
+      END AS watched_on,
     CASE
       WHEN 'created_at' = ANY(local.changed_columns)
         THEN local.created_at
@@ -146,6 +153,7 @@ BEGIN
     review,
     tags,
     favorite,
+    watched_on,
     created_at,
     changed_columns,
     write_id
@@ -157,8 +165,9 @@ BEGIN
     NEW.review,
     NEW.tags,
     NEW.favorite,
+    NEW.watched_on,
     NEW.created_at,
-    ARRAY['name', 'rating', 'review', 'tags', 'favorite', 'created_at'],
+    ARRAY['name', 'rating', 'review', 'tags', 'favorite', 'watched_on', 'created_at'],
     local_write_id
   );
 
@@ -178,6 +187,7 @@ BEGIN
       'review', NEW.review,
       'tags', NEW.tags,
       'favorite', NEW.favorite,
+      'watched_on', NEW.watched_on,
       'created_at', NEW.created_at
     ),
     local_write_id,
@@ -219,6 +229,9 @@ BEGIN
     IF NEW.favorite IS DISTINCT FROM synced.favorite THEN
       changed_cols := array_append(changed_cols, 'favorite');
     END IF;
+    IF NEW.watched_on IS DISTINCT FROM synced.watched_on THEN
+      changed_cols := array_append(changed_cols, 'watched_on');
+    END IF;
     IF NEW.created_at IS DISTINCT FROM synced.created_at THEN
       changed_cols := array_append(changed_cols, 'created_at');
     END IF;
@@ -230,6 +243,7 @@ BEGIN
       review,
       tags,
       favorite,
+      watched_on,
       created_at,
       changed_columns,
       write_id
@@ -241,6 +255,7 @@ BEGIN
       NEW.review,
       NEW.tags,
       NEW.favorite,
+      NEW.watched_on,
       NEW.created_at,
       changed_cols,
       local_write_id
@@ -281,6 +296,12 @@ BEGIN
               THEN NEW.favorite
               ELSE local.favorite
             END,
+        watched_on =
+          CASE
+            WHEN NEW.watched_on IS DISTINCT FROM synced.watched_on
+              THEN NEW.watched_on
+              ELSE local.watched_on
+            END,
         created_at =
           CASE
             WHEN NEW.created_at IS DISTINCT FROM synced.created_at
@@ -293,20 +314,22 @@ BEGIN
           SELECT array_agg(DISTINCT col) FROM (
             SELECT unnest(local.changed_columns) AS col
             UNION
-            SELECT unnest(ARRAY['name', 'rating', 'review', 'tags', 'favorite', 'created_at']) AS col
+            SELECT unnest(ARRAY['name', 'rating', 'review', 'tags', 'favorite', 'watched_on', 'created_at']) AS col
           ) AS cols
           WHERE (
             CASE
               WHEN col = 'name'
                 THEN COALESCE(NEW.name, local.name) IS DISTINCT FROM synced.name
-             WHEN col = 'rating'
+              WHEN col = 'rating'
                 THEN COALESCE(NEW.rating, local.rating) IS DISTINCT FROM synced.rating
-             WHEN col = 'review'
+              WHEN col = 'review'
                 THEN COALESCE(NEW.review, local.review) IS DISTINCT FROM synced.review
-             WHEN col = 'tags'
+              WHEN col = 'tags'
                 THEN COALESCE(NEW.tags, local.tags) IS DISTINCT FROM synced.tags
-             WHEN col = 'favorite'
+              WHEN col = 'favorite'
                 THEN COALESCE(NEW.favorite, local.favorite) IS DISTINCT FROM synced.favorite
+              WHEN col = 'watched_on'
+                THEN COALESCE(NEW.watched_on, local.watched_on) IS DISTINCT FROM synced.watched_on
               WHEN col = 'created_at'
                 THEN COALESCE(NEW.created_at, local.created_at) IS DISTINCT FROM synced.created_at
               END
@@ -333,6 +356,7 @@ BEGIN
         'review', NEW.review,
         'tags', NEW.tags,
         'favorite', NEW.favorite,
+        'watched_on', NEW.watched_on,
         'created_at', NEW.created_at
       )
     ),

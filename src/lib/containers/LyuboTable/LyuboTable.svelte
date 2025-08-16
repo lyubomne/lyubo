@@ -7,6 +7,8 @@
 	import { createTableInputRenderer } from './components/TableInput';
 	import { validationSchema } from './validationSchema';
 	import { createTableTagsSelectorRenderer } from './components/TableTagsSelector';
+	import { TableFavoriteButtonSnippet } from './components/TableFavoriteButton';
+	import { TableDatePickerSnippet } from './components/TableDatePicker';
 
 	let lyuboDBLive: TNillable<LiveDB<ILyuboTable>> = $state();
 	const dbStore = getDB();
@@ -27,6 +29,7 @@
 				type: 'number'
 			})
 		},
+		// TODO: Move Review column to a separate row
 		{
 			name: 'review',
 			title: 'Review'
@@ -50,15 +53,13 @@
 		},
 		{
 			name: 'favorite',
-			title: 'Favorite'
-			// renderer: FavoriteSnippet,
-			// rendererProps: {
-			// 	validationSchema
-			// }
+			title: 'Favorite',
+			renderer: TableFavoriteButtonSnippet
 		},
 		{
-			name: 'created_at',
-			title: 'Created At'
+			name: 'watched_on',
+			title: 'Watched on',
+			renderer: TableDatePickerSnippet
 			// renderer: ({ value }) =>
 			// 	new Intl.DateTimeFormat('en-GB', {
 			// 		day: '2-digit',

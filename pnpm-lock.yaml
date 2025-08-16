@@ -17,6 +17,9 @@ importers:
       '@electric-sql/pglite-sync':
         specifier: ^0.3.9
         version: 0.3.9(@electric-sql/pglite@0.3.6)
+      '@internationalized/date':
+        specifier: ^3.8.2
+        version: 3.8.2
       '@supabase/supabase-js':
         specifier: ^2.53.0
         version: 2.53.0

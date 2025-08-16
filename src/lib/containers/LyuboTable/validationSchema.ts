@@ -7,5 +7,6 @@ export const validationSchema = z.object({
 	review: z.string(),
 	tags: z.array(z.string()),
 	favorite: z.boolean(),
-	created_at: z.string()
+	created_at: z.string(),
+	watched_on: z.string()
 });
