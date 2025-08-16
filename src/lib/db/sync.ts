@@ -13,6 +13,7 @@ type Change = {
 		review: string | null;
 		tags: string[];
 		favorite: boolean;
+		watched_on: string;
 		created_at: Date;
 	};
 	write_id: string;

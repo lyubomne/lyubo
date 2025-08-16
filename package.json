@@ -13,7 +13,8 @@
 		"lint": "eslint . && prettier --check .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "pnpm run test:unit -- --run",
+		"validate": "pnpm run format && pnpm run lint && pnpm run check"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -46,6 +47,7 @@
 		"@electric-sql/client": "^1.0.7",
 		"@electric-sql/pglite": "^0.3.6",
 		"@electric-sql/pglite-sync": "^0.3.9",
+		"@internationalized/date": "^3.8.2",
 		"@supabase/supabase-js": "^2.53.0",
 		"bits-ui": "^2.9.2",
 		"uuid": "^11.1.0",

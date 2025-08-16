@@ -6,4 +6,5 @@ export interface ILyuboTable {
 	tags: string[];
 	favorite: boolean;
 	created_at: Date;
+	watched_on: string;
 }

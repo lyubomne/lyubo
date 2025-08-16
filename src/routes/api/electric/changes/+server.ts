@@ -18,6 +18,7 @@ const transactionsSchema = z.array(
 					review: z.string().nullable().optional(),
 					tags: z.array(z.string()).optional(),
 					favorite: z.boolean().optional(),
+					watched_on: z.string().optional(),
 					created_at: z.string().optional()
 				}),
 				write_id: z.string()
