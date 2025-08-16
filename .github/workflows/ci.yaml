@@ -51,5 +51,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Create dummy .env
+        run: |
+          # Workaround: Check requires .env to exist even in CI
+          # See: https://github.com/sveltejs/kit/discussions/7265
+          cp ./.env.example ./.env
+
       - name: Type check
         run: pnpm run check
