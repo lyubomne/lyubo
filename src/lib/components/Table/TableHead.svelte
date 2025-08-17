@@ -7,7 +7,7 @@
 <thead>
 	<tr>
 		{#each tableContext.columns as column (column.name)}
-			<th>{column.title}</th>
+			<th>{'title' in column ? column.title : null}</th>
 		{/each}
 	</tr>
 </thead>

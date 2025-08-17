@@ -9,6 +9,7 @@
 	import { createTableTagsSelectorRenderer } from './components/TableTagsSelector';
 	import { TableFavoriteButtonSnippet } from './components/TableFavoriteButton';
 	import { TableDatePickerSnippet } from './components/TableDatePicker';
+	import { TableRemoveButtonSnippet } from './components/TableRemoveButton';
 	import { Button } from 'bits-ui';
 	import { v4 as uuidv4 } from 'uuid';
 
@@ -62,7 +63,8 @@
 			name: 'watched_on',
 			title: 'Watched on',
 			renderer: TableDatePickerSnippet
-		}
+		},
+		{ name: 'remove', renderer: TableRemoveButtonSnippet }
 	];
 
 	const expandableRow: ITableExpandableColumns<ILyuboTable> = {
