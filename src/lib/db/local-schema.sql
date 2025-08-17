@@ -11,13 +11,13 @@
 -- The `lyubo_synced` table for immutable, synced state from the server.
 CREATE TABLE IF NOT EXISTS lyubo_synced (
   id UUID PRIMARY KEY,
-  name TEXT NOT NULL,
-  rating NUMERIC(3,1) NOT NULL,
-  review TEXT,
-  tags TEXT[] NOT NULL,
-  favorite BOOLEAN NOT NULL,
-  watched_on TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  rating NUMERIC(3,1) NOT NULL DEFAULT 0,
+  review TEXT NOT NULL DEFAULT '',
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  favorite BOOLEAN NOT NULL DEFAULT FALSE,
+  watched_on TEXT NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   -- Bookkeeping column.
   write_id UUID
 );
@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS lyubo_synced (
 -- The `lyubo_local` table for local optimistic state.
 CREATE TABLE IF NOT EXISTS lyubo_local (
   id UUID PRIMARY KEY,
-  name TEXT,
-  rating NUMERIC(3,1),
-  review TEXT,
-  tags TEXT[],
-  favorite BOOLEAN,
-  watched_on TEXT,
-  created_at TIMESTAMP WITH TIME ZONE,
+  name TEXT NOT NULL DEFAULT '',
+  rating NUMERIC(3,1) NOT NULL DEFAULT 0,
+  review TEXT NOT NULL DEFAULT '',
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  favorite BOOLEAN NOT NULL DEFAULT FALSE,
+  watched_on TEXT NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   -- Bookkeeping columns.
   changed_columns TEXT[],
   is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
@@ -160,13 +160,13 @@ BEGIN
   )
   VALUES (
     NEW.id,
-    NEW.name,
-    NEW.rating,
-    NEW.review,
-    NEW.tags,
-    NEW.favorite,
-    NEW.watched_on,
-    NEW.created_at,
+    COALESCE(NEW.name, ''),
+    COALESCE(NEW.rating, 0),
+    COALESCE(NEW.review, ''),
+    COALESCE(NEW.tags, '{}'),
+    COALESCE(NEW.favorite, FALSE),
+    COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')),
+    COALESCE(NEW.created_at, NOW()),
     ARRAY['name', 'rating', 'review', 'tags', 'favorite', 'watched_on', 'created_at'],
     local_write_id
   );
@@ -182,13 +182,13 @@ BEGIN
     'insert',
     jsonb_build_object(
       'id', NEW.id,
-      'name', NEW.name,
-      'rating', NEW.rating,
-      'review', NEW.review,
-      'tags', NEW.tags,
-      'favorite', NEW.favorite,
-      'watched_on', NEW.watched_on,
-      'created_at', NEW.created_at
+      'name', COALESCE(NEW.name, ''),
+      'rating', COALESCE(NEW.rating, 0),
+      'review', COALESCE(NEW.review, ''),
+      'tags', COALESCE(NEW.tags, '{}'),
+      'favorite', COALESCE(NEW.favorite, FALSE),
+      'watched_on', COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')),
+      'created_at', COALESCE(NEW.created_at, NOW())
     ),
     local_write_id,
     pg_current_xact_id()
@@ -250,13 +250,13 @@ BEGIN
     )
     VALUES (
       NEW.id,
-      NEW.name,
-      NEW.rating,
-      NEW.review,
-      NEW.tags,
-      NEW.favorite,
-      NEW.watched_on,
-      NEW.created_at,
+      COALESCE(NEW.name, ''),
+      COALESCE(NEW.rating, 0),
+      COALESCE(NEW.review, ''),
+      COALESCE(NEW.tags, '{}'),
+      COALESCE(NEW.favorite, FALSE),
+      COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')),
+      COALESCE(NEW.created_at, NOW()),
       changed_cols,
       local_write_id
     );
@@ -351,13 +351,13 @@ BEGIN
     jsonb_strip_nulls(
       jsonb_build_object(
         'id', NEW.id,
-        'name', NEW.name,
-        'rating', NEW.rating,
-        'review', NEW.review,
-        'tags', NEW.tags,
-        'favorite', NEW.favorite,
-        'watched_on', NEW.watched_on,
-        'created_at', NEW.created_at
+        'name', COALESCE(NEW.name, ''),
+        'rating', COALESCE(NEW.rating, 0),
+        'review', COALESCE(NEW.review, ''),
+        'tags', COALESCE(NEW.tags, '{}'),
+        'favorite', COALESCE(NEW.favorite, FALSE),
+        'watched_on', COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')),
+        'created_at', COALESCE(NEW.created_at, NOW())
       )
     ),
     local_write_id,
