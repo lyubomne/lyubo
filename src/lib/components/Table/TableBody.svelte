@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getNestedValues } from '$lib/common/utils';
+	import { isActionColumn } from './utils';
 	import { getTableContext } from './context.svelte';
 
 	const tableContext = getTableContext();
@@ -12,12 +13,19 @@
 			{#each tableContext.columns as column (column.name)}
 				<td>
 					{#if column.renderer}
-						{@render column.renderer({
-							value: getNestedValues(dataItem, column.name),
-							name: column.name,
-							rendererProps: column.rendererProps ?? {},
-							rowId: dataItem.id
-						})}
+						{#if isActionColumn(column)}
+							{@render column.renderer({
+								rendererProps: column.rendererProps ?? {},
+								rowId: dataItem.id
+							})}
+						{:else}
+							{@render column.renderer({
+								value: getNestedValues(dataItem, column.name),
+								name: column.name,
+								rendererProps: column.rendererProps ?? {},
+								rowId: dataItem.id
+							})}
+						{/if}
 					{:else}
 						{getNestedValues(dataItem, column.name)}
 					{/if}
