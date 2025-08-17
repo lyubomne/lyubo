@@ -2,16 +2,20 @@
 	import { ZodError } from 'zod';
 	import type { ITableTagsSelectorProps } from './types';
 	import { Select } from 'bits-ui';
+	import { getDB, updateFieldById } from '$lib/db';
 
 	const {
 		validationSchema,
 		name,
 		value,
+		rowId,
 		items: originalItems,
 		valueKey = 'id',
 		labelKey = 'name',
 		placeholder = 'Select'
 	}: ITableTagsSelectorProps<TItem> = $props();
+
+	const dbStore = getDB();
 
 	const items = $derived(
 		originalItems.map((item) => ({ value: item[valueKey], label: item[labelKey] }))
@@ -28,10 +32,12 @@
 
 	let error = $state('');
 
-	const commit = (itemIds: string[]) => {
+	const commit = async (itemIds: string[]) => {
 		try {
 			validationSchema?.shape[name].parse(itemIds);
 			error = '';
+
+			void updateFieldById({ db: dbStore.db, name, value: itemIds, rowId });
 		} catch (err) {
 			if (err instanceof ZodError) {
 				error = err.issues[0]?.message || 'Invalid value';

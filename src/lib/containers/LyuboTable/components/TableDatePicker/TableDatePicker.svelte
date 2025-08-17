@@ -2,11 +2,18 @@
 	import { parseDate, type DateValue } from '@internationalized/date';
 	import type { ITableDatePickerProps } from './types';
 	import { DatePicker } from 'bits-ui';
+	import { getDB, updateFieldById } from '$lib/db';
 
-	const { value, name }: ITableDatePickerProps = $props();
+	const { value, name, rowId }: ITableDatePickerProps = $props();
+
+	const dbStore = getDB();
 
 	const commit = (date: DateValue | undefined) => {
-		console.log(date?.toString(), name);
+		if (!date) {
+			return;
+		}
+
+		void updateFieldById({ db: dbStore.db, name, value: date.toString(), rowId });
 	};
 </script>
 

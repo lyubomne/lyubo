@@ -3,7 +3,7 @@
 	import { LiveDB, getDB } from '$lib/db';
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
-	import { Table, type ITableColumns } from '$lib/components/Table';
+	import { Table, type ITableColumns, type ITableExpandableColumns } from '$lib/components/Table';
 	import { createTableInputRenderer } from './components/TableInput';
 	import { validationSchema } from './validationSchema';
 	import { createTableTagsSelectorRenderer } from './components/TableTagsSelector';
@@ -29,17 +29,6 @@
 				type: 'number'
 			})
 		},
-		// TODO: Move Review column to a separate row
-		{
-			name: 'review',
-			title: 'Review'
-			// renderer: TableInputSnippet,
-			// rendererProps: {
-			// 	validationSchema,
-			// 	component: InputSnippet,
-			// 	multiline: true
-			// }
-		},
 		{
 			name: 'tags',
 			title: 'Tags',
@@ -60,14 +49,15 @@
 			name: 'watched_on',
 			title: 'Watched on',
 			renderer: TableDatePickerSnippet
-			// renderer: ({ value }) =>
-			// 	new Intl.DateTimeFormat('en-GB', {
-			// 		day: '2-digit',
-			// 		month: '2-digit',
-			// 		year: 'numeric'
-			// 	}).format(new Date(value))
 		}
 	];
+
+	const expandableRow: ITableExpandableColumns<ILyuboTable> = {
+		name: 'review',
+		...createTableInputRenderer({
+			validationSchema
+		})
+	};
 
 	// db Listener is not ready yet on this microtask loop. So we need to run live on the next one.
 	// Otherwise live will be start but no listeners will be triggered
@@ -80,5 +70,5 @@
 
 <!-- TODO: Use placeholder, check empty table -->
 {#if lyuboDBLive?.data}
-	<Table {columns} data={lyuboDBLive.data} />
+	<Table {columns} data={lyuboDBLive.data} expandable={expandableRow} />
 {/if}

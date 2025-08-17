@@ -4,10 +4,12 @@ import { getContext, setContext } from 'svelte';
 class TableStore<TTableData extends IBaseTableData> {
 	columns: ITableProps<TTableData>['columns'];
 	data: ITableProps<TTableData>['data'];
+	expandable: ITableProps<TTableData>['expandable'];
 
 	constructor(propsFn: () => ITableProps<TTableData>) {
 		this.columns = $derived(propsFn().columns);
 		this.data = $derived(propsFn().data);
+		this.expandable = $derived(propsFn().expandable);
 	}
 }
 

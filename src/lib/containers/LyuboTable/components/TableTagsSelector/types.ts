@@ -1,6 +1,7 @@
 import type { ZodObject } from 'zod';
 
 export interface ITableTagsSelectorBaseProps {
+	rowId: string;
 	name: string;
 	value: string[];
 }

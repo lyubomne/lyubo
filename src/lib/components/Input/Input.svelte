@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
-	const {
+	let {
 		value = $bindable(),
 		type,
 		handleKeyDown: originalHandleKeyDown,
@@ -9,8 +9,6 @@
 	}: HTMLInputAttributes & {
 		handleKeyDown: (e: KeyboardEvent) => void;
 	} = $props();
-
-	let localValue = $state(value);
 
 	// TODO: The input could be improved towards inserting numbers, UX and a11y
 	function restrictNumberInput(e: KeyboardEvent) {
@@ -32,7 +30,7 @@
 		}
 
 		if (e.key === '.') {
-			const strValue = localValue !== null ? `${localValue}` : '';
+			const strValue = value !== null ? `${value}` : '';
 
 			if (strValue.length === 0 || strValue.includes('.')) {
 				e.preventDefault();
@@ -53,7 +51,7 @@
 	};
 </script>
 
-<input bind:value={localValue} {type} onkeydown={handleKeyDown} {...restProps} />
+<input bind:value {type} onkeydown={handleKeyDown} {...restProps} />
 
 <style>
 	input[type='number']::-webkit-inner-spin-button,
