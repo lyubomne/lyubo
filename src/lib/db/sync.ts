@@ -10,7 +10,7 @@ type Change = {
 		id: string;
 		name: string;
 		rating: number;
-		review: string | null;
+		review: string;
 		tags: string[];
 		favorite: boolean;
 		watched_on: string;
