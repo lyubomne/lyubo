@@ -5,6 +5,7 @@
 	const tableContext = getTableContext();
 </script>
 
+<!-- TODO: DRY. Move common logic to snippet -->
 <tbody>
 	{#each tableContext.data as dataItem (dataItem.id)}
 		<tr>
@@ -14,14 +15,30 @@
 						{@render column.renderer({
 							value: getNestedValues(dataItem, column.name),
 							name: column.name,
-							rendererProps: column.rendererProps ?? {}
+							rendererProps: column.rendererProps ?? {},
+							rowId: dataItem.id
 						})}
-						<!-- {column.renderer({ value: getNestedValues(dataItem, column.name), name: column.name })} -->
 					{:else}
 						{getNestedValues(dataItem, column.name)}
 					{/if}
 				</td>
 			{/each}
 		</tr>
+		{#if tableContext.expandable}
+			<tr>
+				<td colspan={tableContext.columns.length}>
+					{#if tableContext.expandable.renderer}
+						{@render tableContext.expandable.renderer({
+							value: getNestedValues(dataItem, tableContext.expandable.name),
+							name: tableContext.expandable.name,
+							rendererProps: tableContext.expandable.rendererProps ?? {},
+							rowId: dataItem.id
+						})}
+					{:else}
+						{getNestedValues(dataItem, tableContext.expandable.name)}
+					{/if}
+				</td>
+			</tr>
+		{/if}
 	{/each}
 </tbody>

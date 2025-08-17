@@ -1,11 +1,14 @@
 <script lang="ts">
+	import { getDB, updateFieldById } from '$lib/db';
 	import type { ITableFavoriteButtonProps } from './types';
 	import { Button } from 'bits-ui';
 
-	const { value, name }: ITableFavoriteButtonProps = $props();
+	const { value, name, rowId }: ITableFavoriteButtonProps = $props();
+
+	const dbStore = getDB();
 
 	const commit = () => {
-		console.log(name);
+		void updateFieldById({ db: dbStore.db, name, value: !value, rowId });
 	};
 </script>
 

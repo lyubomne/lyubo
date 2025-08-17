@@ -3,14 +3,18 @@
 	import type { ITableInputSnippetProps } from './types';
 	import { Input } from '$lib/components/Input';
 	import type { HTMLInputAttributes } from 'svelte/elements';
+	import { getDB, updateFieldById } from '$lib/db';
 
 	const {
 		validationSchema,
 		name,
 		value,
+		rowId,
 		type = 'text',
 		...restProps
-	}: HTMLInputAttributes & ITableInputSnippetProps = $props();
+	}: Omit<HTMLInputAttributes, 'value'> & ITableInputSnippetProps = $props();
+
+	const dbStore = getDB();
 
 	let localValue = $state(String(value ?? ''));
 	let error = $state('');
@@ -28,7 +32,13 @@
 		}
 	};
 
-	const commit = () => {};
+	const commit = () => {
+		if (error || value === localValue) {
+			return;
+		}
+
+		void updateFieldById({ db: dbStore.db, name, value: localValue, rowId });
+	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') {

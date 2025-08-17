@@ -1,8 +1,10 @@
+import type { TNillable } from '$lib/common/types';
 import type { ZodObject } from 'zod';
 
 export interface ITableTagsSelectorBaseProps {
+	rowId: string;
 	name: string;
-	value: string | number;
+	value: TNillable<string | number>;
 }
 
 export interface ITableInputSnippetRendererProps {

@@ -11,6 +11,7 @@ export interface IBaseTableRendererSnippetProps<
 > {
 	value: TNestedValue<TTableData, TKey>;
 	name: TKey;
+	rowId: TTableData['id'];
 }
 
 export interface ITableColumn<TTableData extends IBaseTableData, TKey extends string> {
@@ -26,7 +27,12 @@ export type ITableColumns<TTableData extends IBaseTableData> = {
 	[K in keyof TTableData]: ITableColumn<TTableData, Extract<K, string>>;
 }[keyof TTableData];
 
+export type ITableExpandableColumns<TTableData extends IBaseTableData> = {
+	[K in keyof TTableData]: Omit<ITableColumn<TTableData, Extract<K, string>>, 'title'>;
+}[keyof TTableData];
+
 export interface ITableProps<TTableData extends IBaseTableData> {
 	columns: ITableColumns<TTableData>[];
 	data: TTableData[];
+	expandable?: ITableExpandableColumns<TTableData>;
 }
