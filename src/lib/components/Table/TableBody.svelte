@@ -33,7 +33,7 @@
 			{/each}
 		</tr>
 		{#if tableContext.expandable}
-			<tr>
+			<tr class="expandable-row">
 				<td colspan={tableContext.columns.length}>
 					{#if tableContext.expandable.renderer}
 						{@render tableContext.expandable.renderer({
@@ -50,3 +50,52 @@
 		{/if}
 	{/each}
 </tbody>
+
+<style>
+	td:first-child {
+		border-left: var(--border-sm) solid var(--color-white);
+	}
+
+	td:last-child {
+		border-right: var(--border-sm) solid var(--color-white);
+	}
+
+	td:only-child {
+		border-left: var(--border-sm) solid var(--color-white);
+		border-right: var(--border-sm) solid var(--color-white);
+	}
+
+	td:first-child,
+	td:only-child {
+		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
+	}
+
+	tr:first-child td {
+		border-top: var(--border-sm) solid var(--color-white);
+		box-shadow: inset 0 8px 8px -8px var(--color-shadow-1);
+	}
+
+	tr:first-child td:first-child {
+		box-shadow:
+			inset 8px 0 8px -8px var(--color-shadow-1),
+			inset 0 8px 8px -8px var(--color-shadow-1);
+	}
+
+	tr:last-child td {
+		border-bottom: var(--border-sm) solid var(--color-white);
+	}
+
+	tr:last-child td:first-child {
+		border-bottom-left-radius: var(--radius-lg);
+		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
+	}
+
+	tr:last-child td:last-child {
+		border-bottom-right-radius: var(--radius-lg);
+	}
+
+	tr:last-child td:only-child {
+		border-bottom-left-radius: var(--radius-lg);
+		border-bottom-right-radius: var(--radius-lg);
+	}
+</style>

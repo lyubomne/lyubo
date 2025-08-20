@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '../app.css';
 	import { setDB } from '$lib/db';
 	import { ChangeLogSynchronizer } from '$lib/db';
 	import { onMount } from 'svelte';

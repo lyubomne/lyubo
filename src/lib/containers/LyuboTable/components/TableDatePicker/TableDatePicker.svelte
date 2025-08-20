@@ -23,8 +23,8 @@
 	onValueChange={commit}
 	value={parseDate(value)}
 >
-	<div>
-		<DatePicker.Input>
+	<div class="datepicker">
+		<DatePicker.Input class="datepicker-input">
 			{#snippet children({ segments })}
 				{#each segments as { part, value }, i (part + i)}
 					<div>
@@ -90,3 +90,13 @@
 		</DatePicker.Content>
 	</div>
 </DatePicker.Root>
+
+<style>
+	.datepicker {
+		:global {
+			.datepicker-input {
+				display: flex;
+			}
+		}
+	}
+</style>
