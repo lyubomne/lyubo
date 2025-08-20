@@ -7,9 +7,12 @@
 
 	const dbStore = getDB();
 
+	let localValue = $state(value);
+
 	const commit = () => {
-		void updateFieldById({ db: dbStore.db, name, value: !value, rowId });
+		localValue = !localValue;
+		void updateFieldById({ db: dbStore.db, name, value: localValue, rowId });
 	};
 </script>
 
-<Button.Root onclick={commit}>{value}</Button.Root>
+<Button.Root onclick={commit}>{localValue}</Button.Root>
