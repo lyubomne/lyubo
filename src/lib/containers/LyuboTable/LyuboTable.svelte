@@ -55,14 +55,14 @@
 			})
 		},
 		{
-			name: 'favorite',
-			title: 'Favorite',
-			renderer: TableFavoriteButtonSnippet
-		},
-		{
 			name: 'watched_on',
 			title: 'Watched on',
 			renderer: TableDatePickerSnippet
+		},
+		{
+			name: 'favorite',
+			title: 'Favorite',
+			renderer: TableFavoriteButtonSnippet
 		},
 		{ name: 'remove', renderer: TableRemoveButtonSnippet }
 	];

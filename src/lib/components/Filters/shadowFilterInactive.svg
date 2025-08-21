@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <filter id='shadow' color-interpolation-filters="sRGB">
+    <feDropShadow dx="1.2" dy="1.2" stdDeviation="1" flood-color="#666666"/>
+  </filter>
+</svg>

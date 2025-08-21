@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { getDB, updateFieldById } from '$lib/db';
 	import type { ITableFavoriteButtonProps } from './types';
-	import { Button } from 'bits-ui';
+	import { LikeIcon } from '$lib/components/Icons';
+	import { IconButton } from '$lib/components/Buttons';
 
 	const { value, name, rowId }: ITableFavoriteButtonProps = $props();
 
@@ -15,4 +16,4 @@
 	};
 </script>
 
-<Button.Root onclick={commit}>{localValue}</Button.Root>
+<IconButton icon={LikeIcon} active={localValue} onclick={commit} aria-label="favorite" />
