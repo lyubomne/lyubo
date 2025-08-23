@@ -1,10 +1,12 @@
-import type { IBaseTableData, ITableActionColumns, ITableColumns, TableActions } from './types';
+import type {
+	IBaseTableData,
+	ITableActionColumns,
+	ITableColumns,
+	ITableExpandableColumns
+} from './types';
 
 export const isActionColumn = <TTableData extends IBaseTableData>(
-	column: ITableColumns<TTableData>
-): column is ITableActionColumns<TTableData, TableActions> => {
-	return (
-		typeof column.name === 'string' &&
-		(['remove', 'update'] as TableActions[]).includes(column.name as TableActions)
-	);
+	column: ITableColumns<TTableData> | ITableExpandableColumns<TTableData>
+): column is ITableActionColumns<TTableData> => {
+	return ['actions'].includes(column.name);
 };

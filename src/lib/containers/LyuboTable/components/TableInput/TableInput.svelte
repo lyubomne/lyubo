@@ -16,7 +16,7 @@
 
 	const dbStore = getDB();
 
-	let localValue = $state(String(value ?? ''));
+	let localValue = $derived(String(value ?? ''));
 	let error = $state('');
 
 	const validateValue = (e: Event & { currentTarget: EventTarget & HTMLInputElement }) => {
