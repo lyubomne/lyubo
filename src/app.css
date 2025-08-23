@@ -11,11 +11,11 @@
 	-moz-osx-font-smoothing: grayscale;
 
 	--color-white: oklch(1 0 0);
-	--color-text: oklch(0.1913 0 0);
+	--color-dark: oklch(0.1913 0 0);
 	--color-bg: oklch(0.9401 0 0);
 	--color-surface: oklch(0.9702 0 0);
 	--color-accent-1: oklch(0.6345 0.1834 39.43);
-	--color-unaccent-1: oklch(0.6167 0 0);
+	--color-unaccent-1: oklch(0.5795 0 0);
 	--color-shadow-1: oklch(0.8172 0 0);
 	--color-shadow-2: oklch(0.7476 0 0);
 	--color-shadow-3: oklch(0.9911 0 0);
@@ -26,10 +26,11 @@
 	--space-lg: 2rem;
 
 	--size-xs: 1rem;
-	--size-sm: 1.5rem;
-	--size-md: 2rem;
-	--size-lg: 3rem;
-	--size-xl: 4rem;
+	--size-sm: 1.25rem;
+	--size-md: 1.5rem;
+	--size-lg: 2rem;
+	--size-xl: 3rem;
+	--size-xxl: 4rem;
 
 	--border-xs: 1px;
 	--border-sm: 2px;
@@ -51,7 +52,7 @@ body {
 	box-sizing: border-box;
 	height: 100vh;
 	background-color: var(--color-bg);
-	color: var(--color-text);
+	color: var(--color-dark);
 }
 
 input,

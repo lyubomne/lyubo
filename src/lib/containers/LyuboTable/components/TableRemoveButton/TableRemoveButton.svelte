@@ -1,7 +1,8 @@
 <script lang="ts">
+	import IconButton from '$lib/components/Buttons/IconButton.svelte';
+	import { TrashIcon } from '$lib/components/Icons';
 	import { getDB } from '$lib/db';
 	import type { ITableRemoveButtonProps } from './types';
-	import { Button } from 'bits-ui';
 
 	const { rowId }: ITableRemoveButtonProps = $props();
 
@@ -16,4 +17,18 @@
 	};
 </script>
 
-<Button.Root onclick={remove}>Remove</Button.Root>
+<div class="remove-button">
+	<IconButton icon={TrashIcon} onclick={remove} aria-label="remove" title="remove" />
+</div>
+
+<style>
+	.remove-button {
+		display: contents;
+
+		:global {
+			svg {
+				fill: var(--color-dark-1);
+			}
+		}
+	}
+</style>

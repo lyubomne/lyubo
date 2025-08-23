@@ -5,29 +5,42 @@
 	const {
 		icon: IconComponent,
 		class: className,
-		active,
+		size = 'sm',
 		...restProps
-	}: { icon: Component; class?: string; active?: boolean } & HTMLButtonAttributes = $props();
+	}: {
+		icon: Component;
+		class?: string;
+		size?: 'sm' | 'md';
+	} & HTMLButtonAttributes = $props();
 </script>
 
-<button class={['icon-button', active && 'active', className]} {...restProps}>
+<button class={['icon-button', className, size]} {...restProps}>
 	<IconComponent />
 </button>
 
 <style>
+	.sm {
+		--size: var(--size-sm);
+	}
+
+	.md {
+		--size: var(--size-md);
+	}
+
 	.icon-button {
 		vertical-align: top;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		width: var(--size-md);
+		height: var(--size-md);
 
 		:global {
 			svg {
 				transition: transform 0.2s ease;
-				stroke: var(--color-white);
-				filter: url(../Filters/shadowFilterInactive.svg#shadow);
-				width: var(--size-sm);
-				height: var(--size-sm);
+				filter: url($lib/components/Filters/shadowFilterActive.svg#shadow);
+				width: var(--size);
+				height: var(---size);
 			}
 
 			svg:hover {
@@ -36,19 +49,6 @@
 
 			svg:active {
 				transform: scale(1);
-			}
-		}
-	}
-
-	.active {
-		:global {
-			svg {
-				stroke: var(--color-accent-1);
-				filter: url(../Filters/shadowFilterActive.svg#shadow);
-			}
-
-			svg:hover {
-				stroke: var(--color-accent-1);
 			}
 		}
 	}

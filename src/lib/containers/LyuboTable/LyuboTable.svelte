@@ -4,12 +4,16 @@
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
 	import { Table, type ITableColumns, type ITableExpandableColumns } from '$lib/components/Table';
-	import { createTableInputRenderer } from './components/TableInput';
+	import {
+		createTableInputRenderer,
+		createTableTagsSelectorRenderer,
+		TableFavoriteButtonSnippet,
+		TableDatePickerSnippet,
+		TableRemoveButtonSnippet,
+		TableExpandButtonSnippet
+	} from './components';
 	import { validationSchema } from './validationSchema';
-	import { createTableTagsSelectorRenderer } from './components/TableTagsSelector';
-	import { TableFavoriteButtonSnippet } from './components/TableFavoriteButton';
-	import { TableDatePickerSnippet } from './components/TableDatePicker';
-	import { TableRemoveButtonSnippet } from './components/TableRemoveButton';
+
 	import { Button } from 'bits-ui';
 	import { v4 as uuidv4 } from 'uuid';
 
@@ -44,6 +48,11 @@
 			})
 		},
 		{
+			name: 'favorite',
+			title: 'Fav',
+			renderer: TableFavoriteButtonSnippet
+		},
+		{
 			name: 'tags',
 			title: 'Tags',
 			...createTableTagsSelectorRenderer({
@@ -60,19 +69,30 @@
 			renderer: TableDatePickerSnippet
 		},
 		{
-			name: 'favorite',
-			title: 'Favorite',
-			renderer: TableFavoriteButtonSnippet
-		},
-		{ name: 'remove', renderer: TableRemoveButtonSnippet }
+			name: 'actions',
+			renderer: TableExpandButtonSnippet,
+			style: {
+				paddingRight: 'var(--space-xs)'
+			}
+		}
 	];
 
-	const expandableRow: ITableExpandableColumns<ILyuboTable> = {
-		name: 'review',
-		...createTableInputRenderer({
-			validationSchema
-		})
-	};
+	const expandableColumns: ITableExpandableColumns<ILyuboTable>[] = [
+		{
+			name: 'review',
+			colSpan: 5,
+			...createTableInputRenderer({
+				validationSchema
+			})
+		},
+		{
+			name: 'actions',
+			renderer: TableRemoveButtonSnippet,
+			style: {
+				paddingRight: 'var(--space-xs)'
+			}
+		}
+	];
 
 	const addNewItem = () => {
 		if (!dbStore.db) {
@@ -86,5 +106,5 @@
 <!-- TODO: Use placeholder, check empty table -->
 {#if lyuboDBLive?.data}
 	<Button.Root onclick={addNewItem}>add</Button.Root>
-	<Table {columns} data={lyuboDBLive.data} expandable={expandableRow} />
+	<Table {columns} data={lyuboDBLive.data} {expandableColumns} />
 {/if}

@@ -21,6 +21,7 @@
 	}
 
 	th:first-child {
+		padding-left: var(--space-md);
 		border-left: var(--border-sm) solid var(--color-white);
 		border-top-left-radius: var(--radius-lg);
 		box-shadow:
@@ -29,6 +30,7 @@
 	}
 
 	th:last-child {
+		padding-right: var(--space-md);
 		border-right: var(--border-sm) solid var(--color-white);
 		border-top-right-radius: var(--radius-lg);
 	}

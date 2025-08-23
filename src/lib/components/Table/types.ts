@@ -1,8 +1,6 @@
 import type { TNestedValue } from '$lib/common/types';
 import type { Snippet } from 'svelte';
 
-export type TableActions = 'remove';
-
 export interface IBaseTableData {
 	id: string;
 }
@@ -23,27 +21,32 @@ export interface ITableColumn<TTableData extends IBaseTableData, TKey extends st
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	renderer?: Snippet<[IBaseTableRendererSnippetProps<TTableData, TKey> & { rendererProps: any }]>;
 	rendererProps?: object;
+	style?: Partial<CSSStyleDeclaration>;
 }
 
-export type ITableActionColumns<TTableData extends IBaseTableData, TKey extends TableActions> = {
-	name: TKey;
+export type ITableActionColumns<TTableData extends IBaseTableData> = {
+	name: 'actions';
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	renderer?: Snippet<[{ rowId: TTableData['id']; rendererProps: any }]>;
 	rendererProps?: object;
+	style?: Partial<CSSStyleDeclaration>;
 };
 
 export type ITableColumns<TTableData extends IBaseTableData> =
 	| {
 			[K in keyof TTableData]: ITableColumn<TTableData, Extract<K, string>>;
 	  }[keyof TTableData]
-	| ITableActionColumns<TTableData, TableActions>;
+	| ITableActionColumns<TTableData>;
 
-export type ITableExpandableColumns<TTableData extends IBaseTableData> = {
-	[K in keyof TTableData]: Omit<ITableColumn<TTableData, Extract<K, string>>, 'title'>;
-}[keyof TTableData];
+export type ITableExpandableColumns<TTableData extends IBaseTableData> = (
+	| {
+			[K in keyof TTableData]: Omit<ITableColumn<TTableData, Extract<K, string>>, 'title'>;
+	  }[keyof TTableData]
+	| ITableActionColumns<TTableData>
+) & { colSpan?: number };
 
 export interface ITableProps<TTableData extends IBaseTableData> {
 	columns: ITableColumns<TTableData>[];
 	data: TTableData[];
-	expandable?: ITableExpandableColumns<TTableData>;
+	expandableColumns?: ITableExpandableColumns<TTableData>[];
 }

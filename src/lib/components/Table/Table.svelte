@@ -4,9 +4,9 @@
 	import TableHead from './TableHead.svelte';
 	import type { IBaseTableData, ITableProps } from './types';
 
-	const { columns, data, expandable }: ITableProps<TTableData> = $props();
+	const { columns, data, expandableColumns }: ITableProps<TTableData> = $props();
 
-	setTableContext(() => ({ data, columns, expandable }));
+	setTableContext(() => ({ data, columns, expandableColumns }));
 </script>
 
 <table>
