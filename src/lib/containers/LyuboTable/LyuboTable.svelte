@@ -45,7 +45,7 @@
 				},
 				{
 					breakpoint: 'sm',
-					colSpan: 2
+					colSpan: 4
 				}
 			]
 		},
@@ -100,7 +100,8 @@
 			width: 120,
 			expandable: [
 				{
-					breakpoint: 'sm'
+					breakpoint: 'sm',
+					colSpan: 2
 				}
 			]
 		},
@@ -137,9 +138,11 @@
 
 <!-- TODO: Use placeholder, check empty table -->
 {#if lyuboDBLive?.data}
-	<Button.Root onclick={addNewItem}>add</Button.Root>
-	<div class="lyubo-table">
-		<Table {columns} data={lyuboDBLive.data} />
+	<div>
+		<Button.Root onclick={addNewItem}>add</Button.Root>
+		<div class="lyubo-table">
+			<Table {columns} data={lyuboDBLive.data} />
+		</div>
 	</div>
 {/if}
 
