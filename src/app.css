@@ -56,7 +56,9 @@ body {
 	padding: var(--space-8);
 	box-sizing: border-box;
 	height: 100vh;
-	background-color: var(--color-bg);
+	background:
+		url('../static/background.svg'),
+		linear-gradient(to bottom right, var(--color-bg), oklch(0.9401 0 0 / 40%));
 	color: var(--color-dark);
 }
 

@@ -33,6 +33,7 @@
 	};
 
 	const commit = () => {
+		console.log('I sent value');
 		if (error || value === localValue) {
 			return;
 		}

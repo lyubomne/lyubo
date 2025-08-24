@@ -43,7 +43,10 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 
 		for (let rowIndex = 0; rowIndex < col.expandable.length; rowIndex++) {
 			const config = col.expandable[rowIndex];
-			if (!config?.breakpoint) continue;
+
+			if (!config?.breakpoint) {
+				continue;
+			}
 
 			if (
 				isBelowBreakpoint(currentWidth, config.breakpoint) &&

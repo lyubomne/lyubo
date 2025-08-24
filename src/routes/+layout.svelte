@@ -30,6 +30,17 @@
 	});
 </script>
 
-{#if dbStore?.db}
-	{@render children()}
-{/if}
+<div class="main">
+	{#if dbStore?.db}
+		{@render children()}
+	{/if}
+</div>
+
+<style>
+	.main {
+		display: flex;
+		place-content: center;
+		width: 100%;
+		height: 100%;
+	}
+</style>
