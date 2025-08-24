@@ -24,3 +24,5 @@ type TNestedValueByKeys<T, K extends readonly string[]> = K extends [
 	: never;
 
 export type TNestedValue<T, K extends string> = TNestedValueByKeys<T, TSplit<K>>;
+
+export type NonNullableRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> };

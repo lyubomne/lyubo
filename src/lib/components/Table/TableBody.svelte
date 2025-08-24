@@ -2,13 +2,13 @@
 	import { getNestedValues, styleObjectToString } from '$lib/common/utils';
 	import { isActionColumn } from './utils';
 	import { getTableContext } from './context.svelte';
-	import type { ITableExpandableColumns, IBaseTableData, ITableColumns } from './types';
+	import type { ITableEpandableRowColumn, IBaseTableData, ITableColumns } from './types';
 
 	const tableContext = getTableContext();
 </script>
 
 {#snippet TableCell<TTableData extends IBaseTableData>(
-	column: ITableColumns<TTableData> | ITableExpandableColumns<TTableData>,
+	column: ITableColumns<TTableData> | ITableEpandableRowColumn<TTableData>,
 	dataItem: TTableData
 )}
 	{#if column.renderer}
@@ -39,36 +39,38 @@
 				</td>
 			{/each}
 		</tr>
-		{#if tableContext.expandableColumns && tableContext.expandedRows[dataItem.id]}
-			<tr class="expandable-row">
-				{#each tableContext.expandableColumns as expandableColumn (expandableColumn.name)}
-					<td
-						colspan={expandableColumn.colSpan}
-						style={styleObjectToString(expandableColumn.style)}
-					>
-						{@render TableCell(expandableColumn, dataItem)}
-					</td>
-				{/each}
-			</tr>
+		{#if tableContext.expandedRows[dataItem.id]}
+			{#each tableContext.expandableRowsColumns as expandableRow, rowIndex (rowIndex)}
+				<tr class="expandable-row">
+					{#each expandableRow as expandableColumn (expandableColumn.name)}
+						<td
+							colspan={expandableColumn.expandable?.[rowIndex]?.colSpan || 1}
+							style={styleObjectToString(expandableColumn.style)}
+						>
+							{@render TableCell(expandableColumn, dataItem)}
+						</td>
+					{/each}
+				</tr>
+			{/each}
 		{/if}
 	{/each}
 </tbody>
 
 <style>
 	td:first-child {
-		padding-left: var(--space-md);
-		border-left: var(--border-sm) solid var(--color-white);
+		padding-left: var(--space-16);
+		border-left: var(--border-2) solid var(--color-white);
 	}
 
 	td:last-child {
-		padding-right: var(--space-md);
-		border-right: var(--border-sm) solid var(--color-white);
+		padding-right: var(--space-16);
+		border-right: var(--border-2) solid var(--color-white);
 	}
 
 	td:only-child {
-		padding-inline: var(--space-md);
-		border-left: var(--border-sm) solid var(--color-white);
-		border-right: var(--border-sm) solid var(--color-white);
+		padding-inline: var(--space-16);
+		border-left: var(--border-2) solid var(--color-white);
+		border-right: var(--border-2) solid var(--color-white);
 	}
 
 	td:first-child,
@@ -77,7 +79,7 @@
 	}
 
 	tr:first-child td {
-		border-top: var(--border-sm) solid var(--color-white);
+		border-top: var(--border-2) solid var(--color-white);
 		box-shadow: inset 0 8px 8px -8px var(--color-shadow-1);
 	}
 
@@ -88,20 +90,20 @@
 	}
 
 	tr:last-child td {
-		border-bottom: var(--border-sm) solid var(--color-white);
+		border-bottom: var(--border-2) solid var(--color-white);
 	}
 
 	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--radius-lg);
+		border-bottom-left-radius: var(--radius-16);
 		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
 	}
 
 	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--radius-lg);
+		border-bottom-right-radius: var(--radius-16);
 	}
 
 	tr:last-child td:only-child {
-		border-bottom-left-radius: var(--radius-lg);
-		border-bottom-right-radius: var(--radius-lg);
+		border-bottom-left-radius: var(--radius-16);
+		border-bottom-right-radius: var(--radius-16);
 	}
 </style>

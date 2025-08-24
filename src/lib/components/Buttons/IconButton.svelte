@@ -20,11 +20,11 @@
 
 <style>
 	.sm {
-		--size: var(--size-sm);
+		--size: var(--size-20);
 	}
 
 	.md {
-		--size: var(--size-md);
+		--size: var(--size-24);
 	}
 
 	.icon-button {
@@ -32,8 +32,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: var(--size-md);
-		height: var(--size-md);
+		width: var(--size-24);
+		height: var(--size-24);
 
 		:global {
 			svg {

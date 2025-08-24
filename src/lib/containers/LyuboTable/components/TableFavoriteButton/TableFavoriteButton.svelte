@@ -33,8 +33,13 @@
 </div>
 
 <style>
-	.favorite-button {
+	.favorite-button :global {
 		display: contents;
+
+		/* TODO: Maybe it should not be centered */
+		button {
+			margin-inline: auto;
+		}
 	}
 
 	:not(.favorite) :global {
