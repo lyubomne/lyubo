@@ -20,35 +20,40 @@
 	--color-shadow-2: oklch(0.7476 0 0);
 	--color-shadow-3: oklch(0.9911 0 0);
 
-	--space-xs: 0.25rem;
-	--space-sm: 0.5rem;
-	--space-md: 1rem;
-	--space-lg: 2rem;
+	--space-4: 0.25rem;
+	--space-8: 0.5rem;
+	--space-16: 1rem;
+	--space-32: 2rem;
 
-	--size-xs: 1rem;
-	--size-sm: 1.25rem;
-	--size-md: 1.5rem;
-	--size-lg: 2rem;
-	--size-xl: 3rem;
-	--size-xxl: 4rem;
+	--size-16: 1rem;
+	--size-20: 1.25rem;
+	--size-24: 1.5rem;
+	--size-32: 2rem;
+	--size-48: 3rem;
+	--size-64: 4rem;
+	--size-40: 2.5rem;
+	--size-60: 3.75rem;
+	--size-80: 5rem;
+	--size-100: 6.25rem;
+	--size-120: 7.5rem;
+	--size-150: 9.375rem;
+	--size-200: 12.5rem;
 
-	--border-xs: 1px;
-	--border-sm: 2px;
-	--border-md: 4px;
+	--border-1: 1px;
+	--border-2: 2px;
+	--border-4: 4px;
 
-	--radius-sm: 2px;
-	--radius-md: 6px;
-	--radius-lg: 16px;
+	--radius-16: 16px;
 	--radius-full: 50%;
 
-	--font-sm: 0.875rem;
-	--font-md: 1rem;
-	--font-lg: 1.25rem;
+	--font-14: 0.875rem;
+	--font-16: 1rem;
+	--font-20: 1.25rem;
 }
 
 body {
 	margin: 0;
-	padding: var(--space-sm);
+	padding: var(--space-8);
 	box-sizing: border-box;
 	height: 100vh;
 	background-color: var(--color-bg);
