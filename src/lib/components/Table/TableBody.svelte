@@ -128,7 +128,7 @@
 
 	/* Dark shadow for the row immediately before the first hovered row in a group */
 	tr:not(.hovered-group):has(+ .hovered-group) {
-		box-shadow: inset 1px -4px 8px -4px var(--color-shadow-1);
+		box-shadow: inset 0px -4px 8px -4px var(--color-shadow-1);
 	}
 
 	/* Top shadow and border for the first hovered row in a group */
@@ -174,6 +174,16 @@
 	tr.hovered-group:hover ~ .hovered-group:last-child {
 		td {
 			box-shadow: none;
+		}
+	}
+
+	.hovered-group :global {
+		input {
+			box-shadow: inset 2px 2px 2px 0px var(--color-shadow-1);
+		}
+
+		input:not(:focus-visible) {
+			outline: var(--border-2) solid var(--color-white);
 		}
 	}
 </style>

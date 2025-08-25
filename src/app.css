@@ -43,12 +43,18 @@
 	--border-2: 2px;
 	--border-4: 4px;
 
+	--radius-4: 4px;
 	--radius-16: 16px;
 	--radius-full: 50%;
 
 	--font-14: 0.875rem;
 	--font-16: 1rem;
 	--font-20: 1.25rem;
+}
+
+html,
+body {
+	overflow: clip;
 }
 
 body {
@@ -71,4 +77,8 @@ button {
 	color: inherit;
 	cursor: pointer;
 	padding: 0;
+}
+
+*:focus-visible {
+	outline: var(--border-2) solid var(--color-accent-1);
 }
