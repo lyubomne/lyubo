@@ -1,14 +1,18 @@
 <script lang="ts">
+	import type { WithElementRef } from '$lib/common/types';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	let {
 		value = $bindable(),
+		ref = $bindable(null),
 		type,
 		handleKeyDown: originalHandleKeyDown,
 		...restProps
-	}: HTMLInputAttributes & {
-		handleKeyDown: (e: KeyboardEvent) => void;
-	} = $props();
+	}: WithElementRef<
+		HTMLInputAttributes & {
+			handleKeyDown: (e: KeyboardEvent) => void;
+		}
+	> = $props();
 
 	// TODO: The input could be improved towards inserting numbers, UX and a11y
 	function restrictNumberInput(e: KeyboardEvent) {
@@ -51,7 +55,7 @@
 	};
 </script>
 
-<input bind:value {type} onkeydown={handleKeyDown} {...restProps} />
+<input bind:value bind:this={ref} {type} onkeydown={handleKeyDown} {...restProps} />
 
 <style>
 	input[type='number']::-webkit-inner-spin-button,

@@ -36,8 +36,12 @@
 			name: 'review',
 			title: null,
 			...createTableInputRenderer({
-				validationSchema
+				validationSchema,
+				placeholder: 'Enter review'
 			}),
+			style: {
+				paddingLeft: 'var(--space-8)'
+			},
 			expandable: [
 				{
 					breakpoint: 'fullWidth',
@@ -53,8 +57,12 @@
 			name: 'name',
 			title: 'Name',
 			...createTableInputRenderer({
-				validationSchema
+				validationSchema,
+				placeholder: 'Enter name'
 			}),
+			style: {
+				paddingLeft: 'var(--space-8)'
+			},
 			width: 200
 		},
 		{

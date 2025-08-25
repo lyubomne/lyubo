@@ -26,3 +26,5 @@ type TNestedValueByKeys<T, K extends readonly string[]> = K extends [
 export type TNestedValue<T, K extends string> = TNestedValueByKeys<T, TSplit<K>>;
 
 export type NonNullableRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> };
+
+export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };

@@ -34,6 +34,7 @@
 		justify-content: center;
 		width: var(--size-24);
 		height: var(--size-24);
+		border-radius: var(--radius-4);
 
 		:global {
 			svg {

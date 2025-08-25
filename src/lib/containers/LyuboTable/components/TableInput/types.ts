@@ -10,6 +10,7 @@ export interface ITableTagsSelectorBaseProps {
 export interface ITableInputSnippetRendererProps {
 	validationSchema?: ZodObject;
 	type?: 'text' | 'number';
+	placeholder?: string;
 }
 
 // TODO: Improve dependency on validationSchema type passed to rendererProps
