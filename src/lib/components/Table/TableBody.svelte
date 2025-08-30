@@ -34,6 +34,7 @@
 
 <tbody>
 	{#each tableContext.data as dataItem, index (dataItem.id)}
+		<!-- TODO: Higlight the row while editing -->
 		<tr
 			onmouseenter={() => (hoveredGroup = index)}
 			onmouseleave={() => (hoveredGroup = null)}
@@ -45,6 +46,7 @@
 				</td>
 			{/each}
 		</tr>
+		<!-- TODO: Potentially we should separate the whole item row if it is expanded -->
 		{#if tableContext.expandedRows[dataItem.id]}
 			{#each tableContext.expandableRowsColumns as expandableRow, rowIndex (rowIndex)}
 				<tr
@@ -52,13 +54,15 @@
 					onmouseleave={() => (hoveredGroup = null)}
 					class={['expandable-row', hoveredGroup === index && 'hovered-group']}
 				>
-					{#each expandableRow as expandableColumn (expandableColumn.name)}
-						<td
-							colspan={expandableColumn.expandable?.[0]?.colSpan || 1}
-							style={styleObjectToString(expandableColumn.style)}
-						>
-							{@render TableCell(expandableColumn, dataItem)}
-						</td>
+					{#each expandableRow as expandableColumn, index (expandableColumn?.name ?? index)}
+						{#if expandableColumn}
+							<td
+								colspan={expandableColumn.currentExpandableColumn.colSpan || 1}
+								style={styleObjectToString(expandableColumn.style)}
+							>
+								{@render TableCell(expandableColumn, dataItem)}
+							</td>
+						{/if}
 					{/each}
 				</tr>
 			{/each}

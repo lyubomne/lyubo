@@ -45,7 +45,7 @@
 	:not(.favorite) :global {
 		svg {
 			fill: var(--color-white);
-			filter: url($lib/components/Filters/shadowFilterInactive.svg#shadow);
+			filter: url($lib/components/Filters/shadowFilterContrast.svg#shadow);
 		}
 	}
 

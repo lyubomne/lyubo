@@ -42,15 +42,13 @@
 			style: {
 				paddingLeft: 'var(--space-8)'
 			},
-			expandable: [
-				{
-					breakpoint: 'fullWidth',
-					colSpan: 5
-				},
-				{
-					breakpoint: 'sm',
-					colSpan: 4
-				}
+			expandableRows: [
+				[
+					{
+						breakpoint: 'fullWidth',
+						colSpan: 5
+					}
+				]
 			]
 		},
 		{
@@ -89,15 +87,31 @@
 			...createTableTagsSelectorRenderer({
 				validationSchema,
 				items: [
-					{ id: 'Test', name: 'Test' },
-					{ id: 'Test2', name: 'Test2' }
+					{ id: 'action', name: 'action' },
+					{ id: 'drama', name: 'drama' },
+					{ id: 'horror', name: 'horror' },
+					{ id: 'romance', name: 'romance' },
+					{ id: 'science-fiction', name: 'science-fiction' },
+					{ id: 'thriller', name: 'thriller' },
+					{ id: 'mystery', name: 'mystery' },
+					{ id: 'comedy', name: 'comedy' },
+					{ id: 'superhero', name: 'superhero' },
+					{ id: 'historical', name: 'historical' }
 				]
 			}),
 			width: 120,
-			expandable: [
-				{
-					breakpoint: 'sm'
-				}
+			expandableRows: [
+				null,
+				[
+					{
+						breakpoint: 'fullWidth',
+						colSpan: 4
+					},
+					{
+						breakpoint: 'sm',
+						colSpan: 1
+					}
+				]
 			]
 		},
 		{
@@ -106,11 +120,14 @@
 			title: 'Watched on',
 			renderer: TableDatePickerSnippet,
 			width: 120,
-			expandable: [
-				{
-					breakpoint: 'sm',
-					colSpan: 2
-				}
+			expandableRows: [
+				null,
+				[
+					{
+						breakpoint: 'sm',
+						colSpan: 2
+					}
+				]
 			]
 		},
 		{
@@ -127,10 +144,13 @@
 			style: {
 				paddingRight: 'var(--space-4)'
 			},
-			expandable: [
-				{
-					breakpoint: 'fullWidth'
-				}
+			expandableRows: [
+				null,
+				[
+					{
+						breakpoint: 'fullWidth'
+					}
+				]
 			]
 		}
 	];

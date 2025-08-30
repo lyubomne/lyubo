@@ -1,5 +1,5 @@
 import type { Breakpoint } from '$lib/common/breakpoints';
-import type { NonNullableRequired, TNestedValue } from '$lib/common/types';
+import type { TNestedValue } from '$lib/common/types';
 import type { Snippet } from 'svelte';
 
 type IActionColumns = 'expand' | 'remove';
@@ -30,7 +30,7 @@ export interface ITableColumn<TTableData extends IBaseTableData, TKey extends st
 	rendererProps?: object;
 	style?: Partial<CSSStyleDeclaration>;
 	width?: number;
-	expandable?: (ITableExpandableColumnConfig | null)[];
+	expandableRows?: (ITableExpandableColumnConfig[] | null)[];
 }
 
 export type ITableActionColumn<TTableData extends IBaseTableData, TKey extends IActionColumns> = {
@@ -40,7 +40,7 @@ export type ITableActionColumn<TTableData extends IBaseTableData, TKey extends I
 	rendererProps?: object;
 	style?: Partial<CSSStyleDeclaration>;
 	width?: number;
-	expandable?: (ITableExpandableColumnConfig | null)[];
+	expandableRows?: (ITableExpandableColumnConfig[] | null)[];
 };
 
 export type ITableColumns<TTableData extends IBaseTableData> =
@@ -53,18 +53,15 @@ export type ITableColumns<TTableData extends IBaseTableData> =
 export interface ITableProps<TTableData extends IBaseTableData> {
 	columns: ITableColumns<TTableData>[];
 	data: TTableData[];
-	// expandableColumns?: ITableExpandableColumns<TTableData>[];
 }
 
-export type ITableEpandableRowColumn<TTableData extends IBaseTableData> = NonNullableRequired<
-	ITableColumns<TTableData>,
-	'expandable'
->;
+export type ITableEpandableRowColumn<TTableData extends IBaseTableData> =
+	ITableColumns<TTableData> & { currentExpandableColumn: ITableExpandableColumnConfig };
 
 export type ITableEpandableRowColumns<TTableData extends IBaseTableData> =
-	ITableEpandableRowColumn<TTableData>[][];
+	(ITableEpandableRowColumn<TTableData> | null)[];
 
 export type ITablePropsWithExpandable<TTableData extends IBaseTableData> =
 	ITableProps<TTableData> & {
-		expandableRowsColumns: ITableEpandableRowColumns<TTableData>;
+		expandableRowsColumns: ITableEpandableRowColumns<TTableData>[];
 	};

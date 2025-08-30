@@ -20,11 +20,14 @@
 	--color-shadow-2: oklch(0.7476 0 0);
 	--color-shadow-3: oklch(0.9911 0 0);
 
+	--space-2: 0.125rem;
 	--space-4: 0.25rem;
 	--space-8: 0.5rem;
 	--space-16: 1rem;
 	--space-32: 2rem;
 
+	--size-4: 0.25rem;
+	--size-10: 0.625rem;
 	--size-16: 1rem;
 	--size-20: 1.25rem;
 	--size-24: 1.5rem;
@@ -44,6 +47,7 @@
 	--border-4: 4px;
 
 	--radius-4: 4px;
+	--radius-8: 8px;
 	--radius-16: 16px;
 	--radius-full: 50%;
 
@@ -64,7 +68,7 @@ body {
 	height: 100vh;
 	background:
 		url('../static/background.svg'),
-		linear-gradient(to bottom right, var(--color-bg), oklch(0.9401 0 0 / 40%));
+		linear-gradient(to bottom right, var(--color-bg), oklch(from var(--color-bg) l c h / 0.4));
 	color: var(--color-dark);
 }
 
