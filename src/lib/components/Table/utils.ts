@@ -18,8 +18,8 @@ export const isActionColumn = <TTableData extends IBaseTableData>(
 
 export const isExpandableColumn = <TTableData extends IBaseTableData>(
 	column: ITableColumns<TTableData>
-): column is NonNullableRequired<ITableColumns<TTableData>, 'expandable'> => {
-	return 'expandable' in column && column.expandable !== undefined;
+): column is NonNullableRequired<ITableColumns<TTableData>, 'expandableRows'> => {
+	return 'expandableRows' in column && column.expandableRows !== undefined;
 };
 
 export const prepareColumns = <TTableData extends IBaseTableData>(
@@ -27,7 +27,7 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 	currentWidth: number
 ) => {
 	const mainColumns: ITableColumns<TTableData>[] = [];
-	const expandableRowsColumns: ITableEpandableRowColumns<TTableData> = [];
+	const expandableRowsColumns: ITableEpandableRowColumns<TTableData>[] = [];
 
 	if (!currentWidth) {
 		return { mainColumns, expandableRowsColumns };
@@ -41,21 +41,23 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 
 		let chosen: { config: ITableExpandableColumnConfig; rowIndex: number } | null = null;
 
-		for (let rowIndex = 0; rowIndex < col.expandable.length; rowIndex++) {
-			const config = col.expandable[rowIndex];
+		for (let rowIndex = 0; rowIndex < col.expandableRows.length; rowIndex++) {
+			const expandableRow = col.expandableRows[rowIndex];
 
-			if (!config?.breakpoint) {
+			if (!expandableRow) {
 				continue;
 			}
 
-			if (
-				isBelowBreakpoint(currentWidth, config.breakpoint) &&
-				isLessThenCurrentBreakpoint({
-					newBreakpoint: config.breakpoint,
-					currentBreakpoint: chosen?.config.breakpoint
-				})
-			) {
-				chosen = { config, rowIndex };
+			for (const config of expandableRow) {
+				if (
+					isBelowBreakpoint(currentWidth, config.breakpoint) &&
+					isLessThenCurrentBreakpoint({
+						newBreakpoint: config.breakpoint,
+						currentBreakpoint: chosen?.config.breakpoint
+					})
+				) {
+					chosen = { config, rowIndex };
+				}
 			}
 		}
 
@@ -66,7 +68,7 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 
 			expandableRowsColumns[chosen.rowIndex].push({
 				...col,
-				expandable: [chosen.config]
+				currentExpandableColumn: chosen.config
 			});
 		} else {
 			mainColumns.push(col);
