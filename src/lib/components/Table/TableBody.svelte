@@ -122,9 +122,6 @@
 	}
 
 	tr.hovered-group {
-		position: relative;
-		z-index: 1;
-
 		td {
 			box-shadow: none;
 		}
@@ -135,16 +132,19 @@
 		box-shadow: inset 0px -4px 8px -4px var(--color-shadow-1);
 	}
 
+	/* Bottom shadow for the last hovered row in a group, set to the next sibling to avoid problems with stacking */
+	tr.hovered-group + tr:not(.hovered-group) {
+		box-shadow: inset 0px 8px 8px -4px var(--color-shadow-1);
+	}
+
 	/* Top shadow and border for the first hovered row in a group */
 	tr:not(.hovered-group):has(+ .hovered-group) + .hovered-group {
 		box-shadow: inset 0 2px 0 0 var(--color-white);
 	}
 
-	/* Bottom shadow and border for the last hovered row in a group */
+	/* Bottom border for the last hovered row in a group */
 	tr.hovered-group:has(+ :not(.hovered-group)) {
-		box-shadow:
-			0px 8px 8px 0px var(--color-shadow-1),
-			inset 0 -2px 0 0 var(--color-white);
+		box-shadow: inset 0 -2px 0 0 var(--color-white);
 	}
 
 	/* Top and bottom shadows/borders for a hovered row that is both first and last (single row) in a group */

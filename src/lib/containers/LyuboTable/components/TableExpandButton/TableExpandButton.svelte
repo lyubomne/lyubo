@@ -1,6 +1,6 @@
 <script lang="ts">
 	import IconButton from '$lib/components/Buttons/IconButton.svelte';
-	import { VerticalDotsIcon } from '$lib/components/Icons';
+	import { VerticalDotsSmallIcon } from '$lib/components/Icons';
 	import { getTableContext } from '$lib/components/Table';
 	import type { ITableExpandButtonProps } from './types';
 
@@ -14,7 +14,7 @@
 </script>
 
 <div class="expand-button">
-	<IconButton icon={VerticalDotsIcon} onclick={expand} aria-label="expand" title="expand" />
+	<IconButton icon={VerticalDotsSmallIcon} onclick={expand} aria-label="expand" title="expand" />
 </div>
 
 <style>
