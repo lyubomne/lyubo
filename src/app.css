@@ -16,6 +16,7 @@
 	--color-surface: oklch(0.9702 0 0);
 	--color-accent-1: oklch(0.6345 0.1834 39.43);
 	--color-unaccent-1: oklch(0.5795 0 0);
+	--color-unaccent-2: oklch(0.7826 0 0);
 	--color-shadow-1: oklch(0.8172 0 0);
 	--color-shadow-2: oklch(0.7476 0 0);
 	--color-shadow-3: oklch(0.9911 0 0);
@@ -27,6 +28,7 @@
 	--space-32: 2rem;
 
 	--size-4: 0.25rem;
+	--size-8: 0.5rem;
 	--size-10: 0.625rem;
 	--size-16: 1rem;
 	--size-20: 1.25rem;
@@ -41,6 +43,8 @@
 	--size-120: 7.5rem;
 	--size-150: 9.375rem;
 	--size-200: 12.5rem;
+
+	--scrollbar-size: 6px;
 
 	--border-1: 1px;
 	--border-2: 2px;
