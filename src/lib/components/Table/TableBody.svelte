@@ -71,54 +71,25 @@
 </tbody>
 
 <style>
-	tr:first-child td {
-		border-top: var(--border-2) solid var(--color-white);
-		box-shadow: inset 0 8px 8px -8px var(--color-shadow-1);
+	td {
+		text-align: left;
+		padding: var(--space-8);
 	}
 
-	tr:first-child td:first-child {
-		box-shadow:
-			inset 8px 0 8px -8px var(--color-shadow-1),
-			inset 0 8px 8px -8px var(--color-shadow-1);
-	}
-
-	tr:last-child td {
-		border-bottom: var(--border-2) solid var(--color-white);
-	}
-
-	tr:last-child td:first-child {
-		border-bottom-left-radius: var(--radius-16);
-		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
-	}
-
-	tr:last-child td:last-child {
-		border-bottom-right-radius: var(--radius-16);
-	}
-
-	tr:last-child td:only-child {
-		border-bottom-left-radius: var(--radius-16);
-		border-bottom-right-radius: var(--radius-16);
+	tr {
+		background-color: var(--color-surface);
 	}
 
 	td:first-child {
 		padding-left: var(--space-16);
-		border-left: var(--border-2) solid var(--color-white);
 	}
 
 	td:last-child {
 		padding-right: var(--space-16);
-		border-right: var(--border-2) solid var(--color-white);
 	}
 
 	td:only-child {
 		padding-inline: var(--space-16);
-		border-left: var(--border-2) solid var(--color-white);
-		border-right: var(--border-2) solid var(--color-white);
-	}
-
-	td:first-child,
-	td:only-child {
-		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
 	}
 
 	tr.hovered-group {

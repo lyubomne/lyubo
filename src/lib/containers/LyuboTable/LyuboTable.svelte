@@ -166,7 +166,7 @@
 
 <!-- TODO: Use placeholder, check empty table -->
 {#if lyuboDBLive?.data}
-	<div>
+	<div class="lyubo-container">
 		<Button.Root onclick={addNewItem}>add</Button.Root>
 		<div class="lyubo-table">
 			<Table {columns} data={lyuboDBLive.data} />
@@ -175,6 +175,11 @@
 {/if}
 
 <style>
+	.lyubo-container {
+		display: flex;
+		flex-direction: column;
+	}
+
 	.lyubo-table :global {
 		display: contents;
 

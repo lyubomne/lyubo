@@ -93,6 +93,14 @@
 		display: contents;
 
 		:global {
+			th {
+				text-align: center;
+			}
+
+			td {
+				height: var(--size-32);
+			}
+
 			[data-date-field-input] {
 				display: flex;
 			}
@@ -118,10 +126,11 @@
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				margin-bottom: var(--space-8);
 			}
 
 			[data-calendar-head-cell] {
-				width: var(--size-24);
+				width: var(--size-32);
 				font-size: var(--font-14);
 				font-weight: normal;
 				color: var(--color-unaccent-1);

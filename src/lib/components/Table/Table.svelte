@@ -18,37 +18,55 @@
 </script>
 
 <svelte:window bind:innerWidth={null, setInnerWidth} />
-<table>
-	<TableHead />
-	<TableBody />
-</table>
+<div class="table">
+	<div class="table-scroll-container">
+		<table>
+			<TableHead />
+			<TableBody />
+		</table>
+	</div>
+</div>
 
 <style>
-	table {
-		border-spacing: 0 0;
+	.table {
+		display: flex;
+		min-height: 0;
 		position: relative;
+		border-radius: var(--radius-16);
+		border: var(--border-2) solid var(--color-white);
+		box-shadow: 6px 6px 12px 1px var(--color-shadow-2);
 	}
 
-	table::before {
+	.table:after {
 		content: '';
 		position: absolute;
 		inset: 0;
-		border-radius: var(--radius-16);
-		box-shadow: 6px 6px 12px 1px var(--color-shadow-2);
 		pointer-events: none;
+		border-radius: var(--radius-16);
+		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
+	}
+
+	.table-scroll-container {
+		border-radius: inherit;
+		overflow-y: auto;
+		overflow-x: hidden;
+
+		&::-webkit-scrollbar {
+			width: var(--scrollbar-size);
+		}
+
+		&::-webkit-scrollbar-thumb {
+			padding-top: 10px;
+			background: var(--color-unaccent-2);
+			border-radius: var(--radius-16);
+		}
+
+		&::-webkit-scrollbar-track {
+			background: transparent;
+		}
 	}
 
 	table {
-		:global {
-			td,
-			th {
-				text-align: left;
-				padding: var(--space-8);
-			}
-
-			tr {
-				background-color: var(--color-surface);
-			}
-		}
+		border-spacing: 0 0;
 	}
 </style>
