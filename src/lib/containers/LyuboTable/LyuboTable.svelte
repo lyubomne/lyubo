@@ -10,12 +10,10 @@
 		TableFavoriteButtonSnippet,
 		TableDatePickerSnippet,
 		TableRemoveButtonSnippet,
-		TableExpandButtonSnippet
+		TableExpandButtonSnippet,
+		AddButton
 	} from './components';
 	import { validationSchema } from './validationSchema';
-
-	import { Button } from 'bits-ui';
-	import { v4 as uuidv4 } from 'uuid';
 
 	let lyuboDBLive: TNillable<LiveDB<ILyuboTable>> = $state();
 	const dbStore = getDB();
@@ -154,20 +152,12 @@
 			]
 		}
 	];
-
-	const addNewItem = () => {
-		if (!dbStore.db) {
-			return;
-		}
-
-		void dbStore.db.sql` INSERT INTO lyubo (id)	VALUES (${uuidv4()})`;
-	};
 </script>
 
 <!-- TODO: Use placeholder, check empty table -->
 {#if lyuboDBLive?.data}
 	<div class="lyubo-container">
-		<Button.Root onclick={addNewItem}>add</Button.Root>
+		<AddButton />
 		<div class="lyubo-table">
 			<Table {columns} data={lyuboDBLive.data} />
 		</div>
@@ -178,6 +168,7 @@
 	.lyubo-container {
 		display: flex;
 		flex-direction: column;
+		gap: var(--space-8);
 	}
 
 	.lyubo-table :global {
