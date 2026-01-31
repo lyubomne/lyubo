@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LyuboTable } from '$lib/containers/LyuboTable';
+	import { Collection } from '$lib/containers/Collection';
 </script>
 
-<LyuboTable />
+<Collection />

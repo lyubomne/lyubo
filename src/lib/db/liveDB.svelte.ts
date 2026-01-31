@@ -3,18 +3,23 @@ import type { LiveQuery, PGliteWithLive } from '@electric-sql/pglite/live';
 import { createSubscriber } from 'svelte/reactivity';
 
 export class LiveDB<TResult> {
-	#liveDB: TNillable<Promise<LiveQuery<TResult>>>;
+	#liveDB: TNillable<LiveQuery<TResult>>;
 	#data: TResult[] = [];
 	#subscribe;
 
 	constructor(db: PGliteWithLive, query: string) {
 		this.#subscribe = createSubscriber((update) => {
-			this.#liveDB = db.live.query(query, [], (res) => {
-				this.#data = res.rows;
-				update();
-			});
+			db.live
+				.query<TResult>(query, [], (res) => {
+					this.#data = res.rows;
+					update();
+				})
+				.then((res) => {
+					this.#liveDB = res;
+				})
+				.catch((err) => console.error(err));
 
-			return () => this.#liveDB?.then(({ unsubscribe }) => unsubscribe());
+			return () => this.#liveDB?.unsubscribe();
 		});
 	}
 
