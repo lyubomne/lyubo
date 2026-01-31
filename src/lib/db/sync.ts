@@ -5,17 +5,10 @@ import api from '$lib/api/client.js';
 
 type Change = {
 	id: number;
+	table_name: string;
 	operation: Operation;
-	value: {
-		id: string;
-		name: string;
-		rating: number;
-		review: string;
-		tags: string[];
-		favorite: boolean;
-		watched_on: string;
-		created_at: Date;
-	};
+	primary_key: Record<string, unknown>;
+	value?: Record<string, unknown>;
 	write_id: string;
 	transaction_id: string;
 };
@@ -126,9 +119,22 @@ export class ChangeLogSynchronizer {
 		const groups = Object.groupBy(changes, (x) => x.transaction_id);
 		const sorted = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
 		const transactions = sorted.map(([transaction_id, changes]) => {
+			// TODO: React more obviously? Throw error?
+			if (!changes) {
+				return;
+			}
+
 			return {
 				id: transaction_id,
-				changes: changes
+				changes: changes.map((change) => ({
+					table: change.table_name,
+					operation: change.operation,
+					value: {
+						...change.primary_key,
+						...(change.value ?? {})
+					},
+					write_id: change.write_id
+				}))
 			};
 		});
 
@@ -173,6 +179,7 @@ export class ChangeLogSynchronizer {
 		await this.#db.transaction(async (tx) => {
 			await tx.sql`DELETE from changes`;
 			await tx.sql`DELETE from lyubo_local`;
+			// ВОт тут надо тупо дропать вообще все таблицы локальные пока что
 		});
 	}
 
