@@ -36,7 +36,7 @@ export async function applyChange(
 	};
 
 	if (operation === 'insert' && table.allow.insert) {
-		console.log()
+		console.log();
 		return supabase.from(table.table).insert({
 			...pkValues,
 			...filtered,

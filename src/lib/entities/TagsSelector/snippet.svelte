@@ -5,9 +5,9 @@
 	export { TagsSelectorSnippet };
 </script>
 
-{#snippet TagsSelectorSnippet<TItem extends Record<string, string>>({
+{#snippet TagsSelectorSnippet({
 	rendererProps,
 	...restProps
-}: { rendererProps: ITagsSelectorRendererProps<TItem> } & ITagsSelectorBaseProps)}
+}: { rendererProps: ITagsSelectorRendererProps } & ITagsSelectorBaseProps)}
 	<TagsSelector {...rendererProps} {...restProps} />
 {/snippet}
