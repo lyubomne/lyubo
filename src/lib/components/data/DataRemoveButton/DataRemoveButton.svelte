@@ -17,7 +17,6 @@
 			return;
 		}
 
-		// TODO: Table nameshould be taken from context and set from table props
 		void dbStore.db.sql`DELETE FROM ${identifier`${tableName}`} WHERE id = ${rowId}`;
 	};
 </script>

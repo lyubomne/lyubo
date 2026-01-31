@@ -1,17 +1,19 @@
 <script lang="ts">
 	import type { ICollectionTable } from './types';
-	import { type ITableColumns } from '$lib/components/ui';
+	import { type ITableColumns, TableExpandButtonSnippet } from '$lib/components/ui';
 	import { validationSchema } from './validationSchema';
 	import { createTagsSelectorRenderer } from '$lib/entities/TagsSelector';
 	import {
 		DataTable,
 		createDataInputRenderer,
-		TableFavoriteButtonSnippet,
-		TableDatePickerSnippet,
-		TableExpandButtonSnippet,
 		createDataRemoveButtonRenderer
 	} from '$lib/components/data';
+	import {
+		CollectionTableDatePickerSnippet,
+		CollectionTableFavoriteButtonSnippet
+	} from './components';
 
+	// TODO: tableName should be defined as prop in table component and be set to context
 	const columns: ITableColumns<ICollectionTable>[] = [
 		{
 			name: 'review',
@@ -59,7 +61,7 @@
 		{
 			name: 'favorite',
 			title: 'Fav',
-			renderer: TableFavoriteButtonSnippet,
+			renderer: CollectionTableFavoriteButtonSnippet,
 			width: 48,
 			style: {
 				textAlign: 'center'
@@ -88,7 +90,7 @@
 			// TODO: watched_on is too specific. Column name should be more generic
 			name: 'watched_on',
 			title: 'Watched on',
-			renderer: TableDatePickerSnippet,
+			renderer: CollectionTableDatePickerSnippet,
 			width: 120,
 			expandableRows: [
 				null,

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { getDB, updateFieldById } from '$lib/db';
-	import type { ITableFavoriteButtonProps } from './types';
+	import type { ICollectionTableFavoriteButtonProps } from './types';
 	import { HeartIcon, IconButton } from '$lib/components/ui';
 	import { untrack } from 'svelte';
 
-	const { value: dbIsFavorite, name, rowId }: ITableFavoriteButtonProps = $props();
+	const { value: dbIsFavorite, name, rowId }: ICollectionTableFavoriteButtonProps = $props();
 
 	const dbStore = getDB();
 
@@ -19,6 +19,8 @@
 	const commit = async () => {
 		isCommiting = true;
 		localIsFavorite = !localIsFavorite;
+
+		// TODO: Do not hardcode tableName, take it from context
 		await updateFieldById({
 			db: dbStore.db,
 			name,

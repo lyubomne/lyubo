@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { type DateValue } from '@internationalized/date';
-	import type { ITableDatePickerProps } from './types';
+	import type { ICollectionTableDatePickerProps } from './types';
 	import { getDB, updateFieldById } from '$lib/db';
 	import { DatePicker } from '$lib/components/ui';
 	import { debounce } from '$lib/common/utils';
 
-	const { value, name, rowId }: ITableDatePickerProps = $props();
+	const { value, name, rowId }: ICollectionTableDatePickerProps = $props();
 
 	const dbStore = getDB();
 
@@ -14,6 +14,7 @@
 			return;
 		}
 
+		// TODO: Do not hardcode tableName, take it from context
 		void updateFieldById({
 			db: dbStore.db,
 			name,
