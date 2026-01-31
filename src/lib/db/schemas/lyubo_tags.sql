@@ -1,10 +1,6 @@
 -- =========================================================
 -- lyubo_tags.sql
--- Many-to-many relation (Lyubo <-> Tags)
 -- =========================================================
--- ---------------------------------------------------------
--- Synced table
--- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS lyubo_tags_synced(
   lyubo_id uuid NOT NULL,
   tag_id uuid NOT NULL,
@@ -12,9 +8,6 @@ CREATE TABLE IF NOT EXISTS lyubo_tags_synced(
   PRIMARY KEY (lyubo_id, tag_id)
 );
 
--- ---------------------------------------------------------
--- Local optimistic table
--- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS lyubo_tags_local(
   lyubo_id uuid NOT NULL,
   tag_id uuid NOT NULL,
@@ -23,9 +16,6 @@ CREATE TABLE IF NOT EXISTS lyubo_tags_local(
   PRIMARY KEY (lyubo_id, tag_id)
 );
 
--- ---------------------------------------------------------
--- Merged view
--- ---------------------------------------------------------
 CREATE OR REPLACE VIEW lyubo_tags AS
 SELECT
   COALESCE(local.lyubo_id, synced.lyubo_id) AS lyubo_id,
@@ -38,17 +28,14 @@ WHERE
   local.lyubo_id IS NULL
   OR local.is_deleted = FALSE;
 
--- ---------------------------------------------------------
--- Cleanup triggers
--- ---------------------------------------------------------
+-- Cleanup local after sync
 CREATE OR REPLACE FUNCTION delete_lyubo_tags_local_on_synced_change()
   RETURNS TRIGGER
   AS $$
 BEGIN
   DELETE FROM lyubo_tags_local
   WHERE lyubo_id = NEW.lyubo_id
-    AND tag_id = NEW.tag_id
-    AND write_id = NEW.write_id;
+    AND tag_id = NEW.tag_id;
   RETURN NEW;
 END;
 $$
@@ -64,23 +51,23 @@ CREATE OR REPLACE TRIGGER delete_lyubo_tags_local_on_synced_delete
   FOR EACH ROW
   EXECUTE FUNCTION delete_lyubo_tags_local_on_synced_change();
 
--- ---------------------------------------------------------
--- INSTEAD OF INSERT
--- ---------------------------------------------------------
+-- INSERT = resurrect or insert
 CREATE OR REPLACE FUNCTION lyubo_tags_insert_trigger()
   RETURNS TRIGGER
   AS $$
 BEGIN
-  INSERT INTO lyubo_tags_local(lyubo_id, tag_id, write_id)
-    VALUES(NEW.lyubo_id, NEW.tag_id, gen_random_uuid());
+  INSERT INTO lyubo_tags_local(lyubo_id, tag_id, is_deleted, write_id)
+    VALUES(NEW.lyubo_id, NEW.tag_id, FALSE, gen_random_uuid())
+  ON CONFLICT(lyubo_id, tag_id)
+    DO UPDATE SET
+      is_deleted = FALSE,
+      write_id = EXCLUDED.write_id;
   RETURN NEW;
 END;
 $$
 LANGUAGE plpgsql;
 
--- ---------------------------------------------------------
--- INSTEAD OF DELETE
--- ---------------------------------------------------------
+-- DELETE = soft delete
 CREATE OR REPLACE FUNCTION lyubo_tags_delete_trigger()
   RETURNS TRIGGER
   AS $$
@@ -98,9 +85,6 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- ---------------------------------------------------------
--- Attach triggers
--- ---------------------------------------------------------
 CREATE OR REPLACE TRIGGER lyubo_tags_insert
   INSTEAD OF INSERT ON lyubo_tags
   FOR EACH ROW
@@ -110,17 +94,4 @@ CREATE OR REPLACE TRIGGER lyubo_tags_delete
   INSTEAD OF DELETE ON lyubo_tags
   FOR EACH ROW
   EXECUTE FUNCTION lyubo_tags_delete_trigger();
-
--- ---------------------------------------------------------
--- Change logging
--- ---------------------------------------------------------
-CREATE OR REPLACE TRIGGER lyubo_tags_log_insert
-  AFTER INSERT ON lyubo_tags_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_insert('lyubo_id', 'tag_id');
-
-CREATE OR REPLACE TRIGGER lyubo_tags_log_delete
-  AFTER UPDATE ON lyubo_tags_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_delete('lyubo_id', 'tag_id');
 
