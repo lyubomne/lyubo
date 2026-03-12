@@ -1,4 +1,4 @@
-# Lyubo – SvelteKit Data Management Application
+# Lyubo – Local-First Data Management Application
 
 A production‑grade single‑page application built on **SvelteKit**. It provides a
 performant interface for managing collections, tags and related entities. The
