@@ -6,23 +6,30 @@
 	import type { IBaseTableData, ITableProps } from './types';
 	import { throttle } from '$lib/common/utils';
 
-	const { columns, data }: ITableProps<TTableData> = $props();
+	const { columns, data, empty }: ITableProps<TTableData> = $props();
 
-	let innerWidth = $state(0);
+	// Own width, not the window's: a panel is narrower than the window
+	let width = $state(0);
 
-	const setInnerWidth = throttle((width: number) => (innerWidth = width), 500);
+	const setWidth = throttle((newWidth: number) => (width = newWidth), 500);
 
-	const { mainColumns, expandableRowsColumns } = $derived(prepareColumns(columns, innerWidth));
+	const { mainColumns, expandableRowsColumns } = $derived(prepareColumns(columns, width));
 
 	setTableContext(() => ({ columns: mainColumns, data, expandableRowsColumns }));
 </script>
 
-<svelte:window bind:innerWidth={null, setInnerWidth} />
-<div class="table">
+<div class="table" bind:clientWidth={null, setWidth}>
 	<div class="table-scroll-container">
 		<table>
 			<TableHead />
 			<TableBody />
+			{#if empty && data.length === 0}
+				<tbody>
+					<tr>
+						<td class="table-empty" colspan={mainColumns.length || 1}>{@render empty()}</td>
+					</tr>
+				</tbody>
+			{/if}
 		</table>
 	</div>
 </div>
@@ -32,9 +39,32 @@
 		display: flex;
 		min-height: 0;
 		position: relative;
-		border-radius: var(--radius-16);
+		border-radius: var(--radius-8);
 		border: var(--border-2) solid var(--color-white);
-		box-shadow: 6px 6px 12px 1px var(--color-shadow-2);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-rim);
+		/* Height of the sticky row in TableHead */
+		--table-head-height: calc(var(--size-24) + 2 * var(--space-8) + var(--border-2));
+		/* Lets the header base sit under the rows but over this box */
+		isolation: isolate;
+	}
+
+	/* The scrollbar gutter lies outside the table: continue the header behind it */
+	.table::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto;
+		z-index: -1;
+		box-sizing: border-box;
+		height: var(--table-head-height);
+		background: var(--color-surface);
+		border-bottom: var(--border-2) solid var(--color-white);
+		border-radius: calc(var(--radius-8) - var(--border-2)) calc(var(--radius-8) - var(--border-2)) 0
+			0;
+		box-shadow:
+			0px 4px 8px -4px var(--color-shadow-1),
+			inset 0 8px 8px -8px var(--color-shadow-1);
+		pointer-events: none;
 	}
 
 	.table:after {
@@ -42,7 +72,7 @@
 		position: absolute;
 		inset: 0;
 		pointer-events: none;
-		border-radius: var(--radius-16);
+		border-radius: calc(var(--radius-8) - var(--border-2));
 		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
 	}
 
@@ -52,23 +82,47 @@
 		overflow-y: auto;
 		overflow-x: hidden;
 
+		/* The transparent borders narrow the groove and slider inside the gutter */
 		&::-webkit-scrollbar {
 			width: var(--scrollbar-size);
 		}
 
-		&::-webkit-scrollbar-thumb {
-			padding-top: 10px;
-			background: var(--color-unaccent-2);
-			border-radius: var(--radius-16);
+		&::-webkit-scrollbar-track {
+			margin-block: var(--table-head-height) 0;
+			background: var(--color-bg);
+			background-clip: padding-box;
+			border: var(--border-2) solid transparent;
+			border-radius: var(--radius-8);
+			box-shadow:
+				inset 1px 1px 2px 0 var(--color-shadow-2),
+				inset -1px -1px 1px 0 var(--color-white);
 		}
 
-		&::-webkit-scrollbar-track {
-			background: transparent;
+		&::-webkit-scrollbar-thumb {
+			background: var(--color-unaccent-2);
+			background-clip: padding-box;
+			border: var(--border-2) solid transparent;
+			border-radius: var(--radius-8);
+		}
+	}
+	/* Firefox only: in Chrome, scrollbar-color would disable the ::-webkit-scrollbar styles */
+	@supports not selector(::-webkit-scrollbar) {
+		.table-scroll-container {
+			scrollbar-width: thin;
+			scrollbar-color: var(--color-unaccent-2) transparent;
 		}
 	}
 
 	table {
 		border-spacing: 0 0;
 		width: 100%;
+	}
+
+	.table-empty {
+		padding: var(--space-16);
+		background: var(--color-surface);
+		color: var(--color-unaccent-1);
+		font-size: var(--font-14);
+		text-align: center;
 	}
 </style>

@@ -10,6 +10,7 @@ export type TLiveQuery = ReturnType<typeof query>;
 export class LiveDB<TResult> {
 	#liveDB: TNillable<LiveQuery<TResult>>;
 	#data: TResult[] = [];
+	#hasResult = false;
 	#subscribe;
 
 	constructor(db: PGliteWithLive, { query, params }: TLiveQuery) {
@@ -17,6 +18,7 @@ export class LiveDB<TResult> {
 			db.live
 				.query<TResult>(query, params, (res) => {
 					this.#data = res.rows;
+					this.#hasResult = true;
 					update();
 				})
 				.then((res) => {
@@ -31,5 +33,11 @@ export class LiveDB<TResult> {
 	get data() {
 		this.#subscribe();
 		return this.#data;
+	}
+
+	// False until the query answers for the first time: until then, empty `data` means "not known yet"
+	get hasResult() {
+		this.#subscribe();
+		return this.#hasResult;
 	}
 }

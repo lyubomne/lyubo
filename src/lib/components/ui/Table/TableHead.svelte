@@ -28,7 +28,7 @@
 		position: absolute;
 		inset: 0;
 		pointer-events: none;
-		border-top-left-radius: var(--radius-16);
+		border-top-left-radius: calc(var(--radius-8) - var(--border-2));
 		box-shadow:
 			0px 4px 8px -4px var(--color-shadow-1),
 			inset 8px 0 8px -8px var(--color-shadow-1),

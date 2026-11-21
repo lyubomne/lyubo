@@ -31,9 +31,9 @@
 {#if tableDBLive?.data}
 	<div class="tags-editor">
 		<Popover.Root>
-			<Popover.Trigger aria-label="Select a tag">
+			<Popover.Trigger>
 				{#snippet child({ props })}
-					<Button {...props}>Edit tags <DownIcon /></Button>
+					<Button {...props} icon={DownIcon}>Edit tags</Button>
 				{/snippet}
 			</Popover.Trigger>
 			<Popover.Portal>
@@ -56,13 +56,6 @@
 		flex-wrap: wrap;
 		gap: var(--space-4);
 		align-items: center;
-
-		:global {
-			svg {
-				fill: var(--color-unaccent-1);
-				height: var(--size-20);
-			}
-		}
 	}
 
 	.tags-editor-content {
@@ -75,9 +68,9 @@
 
 			[data-popover-content] {
 				background-color: var(--color-surface);
-				border: var(--border-1) solid var(--color-white);
-				border-radius: var(--radius-4);
-				box-shadow: 0px 8px 8px 0px var(--color-shadow-1);
+				border: var(--border-2) solid var(--color-white);
+				border-radius: var(--radius-8);
+				box-shadow: var(--shadow-panel);
 				display: flex;
 				flex-direction: column;
 				gap: var(--space-4);

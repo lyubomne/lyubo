@@ -325,6 +325,38 @@ describe('local schema', () => {
 		});
 	});
 
+	describe('deleting a collection', () => {
+		it('drops its records, tags and relations that never synced, keeping their logged changes', async () => {
+			await db.sql`INSERT INTO collections (id, name) VALUES (${COLLECTION_ID}, 'Films')`;
+			await db.sql`INSERT INTO lyubo (id, collection_id) VALUES (${LYUBO_ID}, ${COLLECTION_ID})`;
+			await db.sql`INSERT INTO tags (id, collection_id, name) VALUES (${TAG_ID}, ${COLLECTION_ID}, 'drama')`;
+			await db.sql`INSERT INTO lyubo_tags (lyubo_id, tag_id) VALUES (${LYUBO_ID}, ${TAG_ID})`;
+
+			await db.sql`DELETE FROM collections WHERE id = ${COLLECTION_ID}`;
+
+			expect(await localWriteId('lyubo_local')).toBeUndefined();
+			expect(await localWriteId('tags_local', TAG_ID)).toBeUndefined();
+			expect(await relationWriteId()).toBeUndefined();
+			expect((await readChangeLog(db)).map((c) => [c.table_name, c.operation])).toEqual([
+				['collections', 'insert'],
+				['lyubo', 'insert'],
+				['tags', 'insert'],
+				['lyubo_tags', 'insert'],
+				['collections', 'delete']
+			]);
+		});
+
+		it('keeps local edits of its synced records until the server deletes them', async () => {
+			await syncIn(db, 'collections', [serverCollection()]);
+			await syncIn(db, 'lyubo', [serverLyubo()]);
+			await db.sql`UPDATE lyubo SET name = 'edited' WHERE id = ${LYUBO_ID}`;
+
+			await db.sql`DELETE FROM collections WHERE id = ${COLLECTION_ID}`;
+
+			expect(await localWriteId('lyubo_local')).toBeDefined();
+		});
+	});
+
 	describe('synced functions', () => {
 		it('replaces a whole synced table from a complete result, logging nothing', async () => {
 			await syncIn(db, 'lyubo', [serverLyubo(), serverLyubo({ id: OTHER_LYUBO_ID })]);

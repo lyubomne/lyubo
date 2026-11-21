@@ -212,6 +212,64 @@ ELSE
   DELETE FROM collections_local
   WHERE id = OLD.id;
 END IF;
+  -- Its records, tags and relations that never synced would stay forever: the server deletes them
+  -- with the collection, so they never sync back. Edits of synced rows go when the server's
+  -- delete arrives. Their logged changes stay and are sent as usual
+  DELETE FROM lyubo_tags_local rel
+  WHERE NOT EXISTS (
+      SELECT
+        1
+      FROM
+        lyubo_tags_synced synced
+      WHERE
+        synced.lyubo_id = rel.lyubo_id
+        AND synced.tag_id = rel.tag_id)
+    AND (rel.lyubo_id IN (
+        SELECT
+          id
+        FROM
+          lyubo_local
+        WHERE
+          collection_id = OLD.id
+        UNION
+        SELECT
+          id
+        FROM
+          lyubo_synced
+        WHERE
+          collection_id = OLD.id)
+        OR rel.tag_id IN (
+          SELECT
+            id
+          FROM
+            tags_local
+          WHERE
+            collection_id = OLD.id
+          UNION
+          SELECT
+            id
+          FROM
+            tags_synced
+          WHERE
+            collection_id = OLD.id));
+  DELETE FROM lyubo_local l
+  WHERE l.collection_id = OLD.id
+    AND NOT EXISTS (
+      SELECT
+        1
+      FROM
+        lyubo_synced synced
+      WHERE
+        synced.id = l.id);
+  DELETE FROM tags_local t
+  WHERE t.collection_id = OLD.id
+    AND NOT EXISTS (
+      SELECT
+        1
+      FROM
+        tags_synced synced
+      WHERE
+        synced.id = t.id);
   PERFORM
     log_change('collections', 'delete', jsonb_build_object('id', OLD.id), NULL, local_write_id);
   RETURN OLD;

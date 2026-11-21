@@ -47,8 +47,8 @@
 			}),
 			style: {
 				paddingLeft: 'var(--space-8)'
-			},
-			width: 200
+			}
+			// No width: Name takes the remaining space
 		},
 		{
 			name: 'rating',
@@ -129,4 +129,8 @@
 	]);
 </script>
 
-<DataTable {columns} name="lyubo_with_tags" filter={{ collection_id: collectionId }} />
+{#snippet empty()}
+	No records yet. Add the first one with the + key.
+{/snippet}
+
+<DataTable {columns} name="lyubo_with_tags" filter={{ collection_id: collectionId }} {empty} />

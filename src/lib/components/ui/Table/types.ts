@@ -53,6 +53,8 @@ export type ITableColumns<TTableData extends IBaseTableData> =
 export interface ITableProps<TTableData extends IBaseTableData> {
 	columns: ITableColumns<TTableData>[];
 	data: TTableData[];
+	// Shown in one row under the header while there is no data
+	empty?: Snippet;
 }
 
 export type ITableExpandableRowColumn<TTableData extends IBaseTableData> =

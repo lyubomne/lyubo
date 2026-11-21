@@ -112,16 +112,21 @@
 				border-radius: var(--radius-4);
 			}
 
+			/* Optical correction, measured: shadow and tall body put the icon 1px below the digits */
+			[data-date-field-input] [data-popover-trigger] svg {
+				translate: 0 -1px;
+			}
+
 			[data-bits-floating-content-wrapper] {
 				z-index: 20 !important;
 			}
 
 			[data-calendar-root] {
 				background: var(--color-surface);
-				border: var(--border-1) solid var(--color-white);
+				border: var(--border-2) solid var(--color-white);
 				border-radius: var(--radius-8);
-				padding: var(--space-8);
-				box-shadow: 0px 8px 8px 0px var(--color-shadow-1);
+				padding: var(--space-4);
+				box-shadow: var(--shadow-panel);
 				cursor: default;
 			}
 

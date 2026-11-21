@@ -54,8 +54,11 @@
 	--size-120: 7.5rem;
 	--size-150: 9.375rem;
 	--size-200: 12.5rem;
+	--size-448: 28rem;
+	/* Every column of a collection in one row: the table stays above `sm` */
+	--size-672: 42rem;
 
-	--scrollbar-size: 6px;
+	--scrollbar-size: var(--size-10);
 
 	--border-1: 1px;
 	--border-2: 2px;
@@ -64,6 +67,7 @@
 	--radius-4: 4px;
 	--radius-8: 8px;
 	--radius-16: 16px;
+	--radius-24: 24px;
 	--radius-full: 50%;
 
 	--font-12: 0.75rem;
@@ -72,8 +76,9 @@
 	--font-20: 1.25rem;
 
 	/* Short, flat shadows: tactile, not inflated (docs/DESIGN.md) */
-	--shadow-panel: 2px 2px 6px 0 var(--color-shadow-1);
+	--shadow-panel: 2px 3px 8px -2px var(--color-shadow-2);
 	--shadow-key-raised: -1px -1px 2px 0 var(--color-shadow-3), 1px 1px 3px 0 var(--color-shadow-2);
+	--shadow-rim: -1px -1px 2px 0 var(--color-shadow-3), 2px 2px 4px 0 var(--color-shadow-2);
 	--shadow-key-pressed:
 		inset 1px 1px 3px 0 var(--color-shadow-2), inset -1px -1px 2px 0 var(--color-shadow-3);
 
@@ -131,6 +136,16 @@ button {
 	color: inherit;
 	cursor: pointer;
 	padding: 0;
+}
+
+/* Read by screen readers, not shown */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
 }
 
 *:focus-visible {

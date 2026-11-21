@@ -35,13 +35,15 @@
 <tbody>
 	{#each tableContext.data as dataItem, index (dataItem.id)}
 		<!-- TODO: Higlight the row while editing -->
+		<!-- `data-row-id` / `data-column` let callers find a cell, e.g. to focus a new row -->
 		<tr
 			onmouseenter={() => (hoveredGroup = index)}
 			onmouseleave={() => (hoveredGroup = null)}
 			class={[hoveredGroup === index && 'hovered-group']}
+			data-row-id={dataItem.id}
 		>
 			{#each tableContext.columns as column (column.name)}
-				<td style={styleObjectToString(column.style)}>
+				<td style={styleObjectToString(column.style)} data-column={column.name}>
 					{@render TableCell(column, dataItem)}
 				</td>
 			{/each}
@@ -59,6 +61,7 @@
 							<td
 								colspan={expandableColumn.currentExpandableColumn.colSpan || 1}
 								style={styleObjectToString(expandableColumn.style)}
+								data-column={expandableColumn.name}
 							>
 								{@render TableCell(expandableColumn, dataItem)}
 							</td>

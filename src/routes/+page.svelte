@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Collection } from '$lib/containers/Collection';
+	import { Collections } from '$lib/containers/Collections';
 </script>
 
-<Collection />
+<Collections />

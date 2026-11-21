@@ -130,9 +130,9 @@
 
 			[data-select-content] {
 				background-color: var(--color-surface);
-				border: var(--border-1) solid var(--color-white);
-				border-radius: var(--radius-4);
-				box-shadow: 0px 8px 8px 0px var(--color-shadow-1);
+				border: var(--border-2) solid var(--color-white);
+				border-radius: var(--radius-8);
+				box-shadow: var(--shadow-panel);
 			}
 
 			[data-select-item] {
@@ -140,7 +140,7 @@
 				justify-content: space-between;
 				align-items: center;
 				gap: var(--space-8);
-				margin: var(--space-2);
+				margin: var(--space-4);
 				padding: var(--space-2);
 				border-radius: var(--radius-4);
 				font-size: var(--font-14);

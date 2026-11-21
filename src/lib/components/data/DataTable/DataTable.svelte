@@ -6,7 +6,7 @@
 	import { Table, type IBaseTableData } from '$lib/components/ui';
 	import type { IDataTableProps } from './types';
 
-	const { columns, name, filter = {} }: IDataTableProps<TTableData> = $props();
+	const { columns, name, filter = {}, empty }: IDataTableProps<TTableData> = $props();
 
 	let tableDBLive: TNillable<LiveDB<TTableData>> = $state();
 	const dbStore = getDB();
@@ -30,7 +30,7 @@
 	});
 </script>
 
-<!-- TODO: Use placeholder, check empty table -->
-{#if tableDBLive?.data}
-	<Table {columns} data={tableDBLive.data} />
+<!-- The frame shows at once; "empty" only once the query has answered, or it flashes on start -->
+{#if tableDBLive}
+	<Table {columns} data={tableDBLive.data} empty={tableDBLive.hasResult ? empty : undefined} />
 {/if}
