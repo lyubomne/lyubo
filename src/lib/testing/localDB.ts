@@ -2,7 +2,8 @@ import { PGlite } from '@electric-sql/pglite';
 import { type PGliteWithLive, live } from '@electric-sql/pglite/live';
 import { identifier } from '@electric-sql/pglite/template';
 
-import { LOCAL_SCHEMAS } from '$lib/db/schemas';
+import { PGLITE_PARSERS } from '$lib/db/parsers';
+import { applyLocalSchema } from '$lib/db/schemas';
 
 export interface ILoggedChange {
 	table_name: string;
@@ -16,11 +17,12 @@ export interface ILoggedChange {
  * In-memory PGlite with the app's local schema: what DBStore creates, without IndexedDB and sync.
  */
 export const createLocalDB = async (): Promise<PGliteWithLive> => {
-	const db: PGliteWithLive = await PGlite.create({ extensions: { live } });
+	const db: PGliteWithLive = await PGlite.create({
+		extensions: { live },
+		parsers: PGLITE_PARSERS
+	});
 
-	for (const schema of LOCAL_SCHEMAS) {
-		await db.exec(schema);
-	}
+	await applyLocalSchema(db);
 
 	return db;
 };
@@ -40,6 +42,6 @@ export const readChangeLog = async (db: PGliteWithLive): Promise<ILoggedChange[]
  */
 export const syncIn = (
 	db: PGliteWithLive,
-	table: 'lyubo' | 'tags' | 'lyubo_tags',
+	table: 'collections' | 'lyubo' | 'tags' | 'lyubo_tags',
 	rows: object[]
 ) => db.sql`SELECT ${identifier`${table}_synced_upsert`}(${JSON.stringify(rows)}::jsonb)`;

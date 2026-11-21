@@ -2,6 +2,7 @@
 	import { ZodError } from 'zod';
 	import type { ITagsSelectorProps } from './types';
 	import { Select } from 'bits-ui';
+	import { query } from '@electric-sql/pglite/template';
 	import { assignRelation, getDB, LiveDB, unassignRelation } from '$lib/db';
 	import TableTag from './Tag.svelte';
 	import { DotSmallIcon, DownIcon, IconButton } from '$lib/components/ui';
@@ -9,7 +10,7 @@
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
 
-	const { value, rowId, placeholder = 'Select a tag' }: ITagsSelectorProps = $props();
+	const { value, rowId, collectionId, placeholder = 'Select a tag' }: ITagsSelectorProps = $props();
 
 	const dbStore = getDB();
 	let tagsDBLive: TNillable<LiveDB<{ id: string; name: string }>> = $state();
@@ -20,7 +21,7 @@
 		if (dbStore.db) {
 			tagsDBLive = new LiveDB<{ id: string; name: string }>(
 				dbStore.db,
-				`SELECT * FROM tags ORDER BY created_at DESC`
+				query`SELECT * FROM tags WHERE collection_id = ${collectionId} ORDER BY created_at DESC`
 			);
 		}
 	});
@@ -78,7 +79,7 @@
 				<div class="tags-selector-content">
 					<Select.Content sideOffset={10}>
 						<Select.Viewport>
-							<TagInput />
+							<TagInput {collectionId} />
 							{#each items as item, i (i + item.value)}
 								<Select.Item
 									label={item.label}

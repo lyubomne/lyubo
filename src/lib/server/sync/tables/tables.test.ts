@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ColumnLimits } from '$lib/common/limits';
 import { SYNCED_TABLES } from '$lib/db';
 import { SERVER_SCHEMA } from '$lib/server/testing';
-import { createLocalDB } from '$lib/testing';
+import { COLLECTION_ID, createLocalDB } from '$lib/testing';
 import { TABLES } from '.';
 
 // The same table is described in five places (local schema, server schema, SYNCED_TABLES,
@@ -78,11 +78,20 @@ describe('synced table contract', () => {
 		const limits = Object.entries(ColumnLimits).flatMap(([table, columns]) =>
 			Object.entries(columns).map(([column, limit]) => ({ table, column, limit }))
 		);
+		// Rows of every table but `collections` belong to this collection
 		const insert = (table: string, column: string, value: unknown) =>
-			serverDB.sql`
-				INSERT INTO ${identifier`${table}`} (id, ${identifier`${column}`})
-				VALUES (gen_random_uuid(), ${value})
-			`;
+			table === 'collections'
+				? serverDB.sql`
+						INSERT INTO collections (id, ${identifier`${column}`}) VALUES (gen_random_uuid(), ${value})
+					`
+				: serverDB.sql`
+						INSERT INTO ${identifier`${table}`} (id, collection_id, ${identifier`${column}`})
+						VALUES (gen_random_uuid(), ${COLLECTION_ID}, ${value})
+					`;
+
+		beforeAll(async () => {
+			await serverDB.sql`INSERT INTO collections (id) VALUES (${COLLECTION_ID})`;
+		});
 
 		// Characters, not bytes: Cyrillic takes two bytes each in UTF-8
 		it.each(limits)(

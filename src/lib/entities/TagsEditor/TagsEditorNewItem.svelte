@@ -1,27 +1,51 @@
 <script lang="ts">
 	import { ColumnLimits } from '$lib/common/limits';
 	import { Input } from '$lib/components/ui';
-	import { getDB } from '$lib/db';
+	import { getDB, getUniqueViolationMessage } from '$lib/db';
 	import type { EventHandler } from 'svelte/elements';
 	import { v4 as uuidv4 } from 'uuid';
 
+	const { collectionId }: { collectionId: string } = $props();
+
 	const dbStore = getDB();
 
-	// TODO: Handle duplicates
-	const handleNewTagSubmit: EventHandler<SubmitEvent, HTMLFormElement> = (event) => {
+	let error = $state('');
+
+	const handleNewTagSubmit: EventHandler<SubmitEvent, HTMLFormElement> = async (event) => {
 		event.preventDefault();
 
 		if (event.currentTarget && dbStore.db) {
 			const formData = new FormData(event.currentTarget);
 
-			void dbStore.db
-				.sql` INSERT INTO tags (id, name) VALUES (${uuidv4()}, ${formData.get('new-tag')})`;
+			try {
+				await dbStore.db
+					.sql` INSERT INTO tags (id, collection_id, name) VALUES (${uuidv4()}, ${collectionId}, ${formData.get('new-tag')})`;
+				error = '';
+			} catch (err) {
+				// The local schema rejects a duplicate name before it reaches the change log
+				const message = getUniqueViolationMessage(err);
+
+				if (!message) {
+					throw err;
+				}
+
+				error = message;
+			}
 		}
 	};
 </script>
 
 <form onsubmit={handleNewTagSubmit}>
-	<Input name="new-tag" placeholder="Add a new tag" maxlength={ColumnLimits.tags.name} />
+	<Input
+		name="new-tag"
+		placeholder="Add a new tag"
+		maxlength={ColumnLimits.tags.name}
+		aria-invalid={error ? 'true' : 'false'}
+		oninput={() => (error = '')}
+	/>
+	{#if error}
+		<div class="error" role="alert">{error}</div>
+	{/if}
 </form>
 
 <style>

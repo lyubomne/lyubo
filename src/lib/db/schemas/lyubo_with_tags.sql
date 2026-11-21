@@ -5,11 +5,12 @@
 CREATE OR REPLACE VIEW lyubo_with_tags AS
 SELECT
   l.id,
+  l.collection_id,
   l.name,
   l.rating,
   l.review,
   l.favorite,
-  l.watched_on,
+  l.rated_on,
   l.created_at,
   COALESCE(jsonb_agg(t.id ORDER BY t.id) FILTER (WHERE t.id IS NOT NULL), '[]'::jsonb) AS tags
 FROM
@@ -18,10 +19,11 @@ FROM
   LEFT JOIN tags t ON t.id = lt.tag_id
 GROUP BY
   l.id,
+  l.collection_id,
   l.name,
   l.rating,
   l.review,
   l.favorite,
-  l.watched_on,
+  l.rated_on,
   l.created_at;
 

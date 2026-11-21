@@ -1,7 +1,9 @@
 import { type PGliteWithLive } from '@electric-sql/pglite/live';
+import { identifier } from '@electric-sql/pglite/template';
 
 import api from '$lib/api/client.js';
 import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
+import { SYNCED_TABLES } from './tables';
 
 type Change = {
 	id: number;
@@ -240,9 +242,10 @@ export class ChangeLogSynchronizer {
 	 */
 	async rollback(): Promise<void> {
 		await this.#db.transaction(async (tx) => {
-			await tx.sql`DELETE from lyubo_local`;
-			await tx.sql`DELETE from tags_local`;
-			await tx.sql`DELETE from lyubo_tags_local`;
+			for (const { table } of SYNCED_TABLES) {
+				await tx.sql`DELETE FROM ${identifier`${table}_local`}`;
+			}
+
 			await tx.sql`DELETE from changes`;
 		});
 	}

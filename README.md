@@ -34,6 +34,14 @@ Realtime for reads, and a local change log sent to the app's own API for writes.
 
 ---
 
+## Local database
+
+The browser keeps its data in PGlite (IndexedDB). When an update changes the local schema, the app
+drops the local database and loads it again from Neon. Changes that were made offline and not sent
+yet are lost at that moment.
+
+---
+
 ## License
 
 This project is licensed under the **AGPL‑3.0** license. See the [LICENSE](LICENSE)

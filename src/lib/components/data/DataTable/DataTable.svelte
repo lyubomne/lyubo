@@ -1,10 +1,12 @@
 <script lang="ts" generics="TTableData extends IBaseTableData">
+	import { identifier, query, sql } from '@electric-sql/pglite/template';
 	import { LiveDB, getDB } from '$lib/db';
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
-	import { Table, type ITableColumns, type IBaseTableData } from '$lib/components/ui';
+	import { Table, type IBaseTableData } from '$lib/components/ui';
+	import type { IDataTableProps } from './types';
 
-	const { columns, name }: { columns: ITableColumns<TTableData>[]; name: string } = $props();
+	const { columns, name, filter = {} }: IDataTableProps<TTableData> = $props();
 
 	let tableDBLive: TNillable<LiveDB<TTableData>> = $state();
 	const dbStore = getDB();
@@ -13,9 +15,16 @@
 	// Otherwise live will be start but no listeners will be triggered
 	tick().then(() => {
 		if (dbStore.db) {
+			const conditions = Object.entries(filter).map(
+				([column, value]) => sql`${identifier`${column}`} = ${value}`
+			);
+			const where = conditions.length
+				? sql`WHERE ${conditions.reduce((left, right) => sql`${left} AND ${right}`)}`
+				: sql``;
+
 			tableDBLive = new LiveDB<TTableData>(
 				dbStore.db,
-				`SELECT * FROM ${name} ORDER BY created_at DESC`
+				query`SELECT * FROM ${identifier`${name}`} ${where} ORDER BY created_at DESC`
 			);
 		}
 	});

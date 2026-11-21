@@ -5,7 +5,9 @@ import {
 	type RawLiveQueryUpdate,
 	type RealtimeClient,
 	type SealedLiveQuery,
-	createRealtimeClient
+	createRealtimeClient,
+	nodePostgresParsers,
+	pgTypeOids
 } from '@neon/realtime/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -16,7 +18,10 @@ import { SYNCED_TABLES } from './tables';
 
 // The network (sealing endpoint and Realtime client) is replaced, PGlite is real
 vi.mock('$lib/api/client');
-vi.mock('@neon/realtime/client', () => ({ createRealtimeClient: vi.fn() }));
+vi.mock('@neon/realtime/client', async (importOriginal) => ({
+	...(await importOriginal<typeof import('@neon/realtime/client')>()),
+	createRealtimeClient: vi.fn()
+}));
 
 type TRow = Record<string, unknown>;
 
@@ -156,6 +161,61 @@ describe('RealtimeSync', () => {
 		});
 	});
 
+	describe('decoding', () => {
+		let db: PGliteWithLive;
+		let sync: RealtimeSync;
+		let sendUpdate: (update: RawLiveQueryUpdate<TRow>) => void;
+		let parseDate: (value: string) => unknown;
+
+		beforeEach(async () => {
+			// East of UTC, local midnight is still the day before in UTC
+			vi.stubEnv('TZ', 'Europe/Moscow');
+			db = await createLocalDB();
+			sync = new RealtimeSync(db, [LYUBO_TABLE]);
+			request.mockImplementation(async () => sealResponse(Date.now() + 60_000));
+			// Like the real client: the parsers it is given, else its node-postgres defaults
+			vi.mocked(createRealtimeClient).mockImplementation(({ parsers }) => {
+				parseDate = (parsers?.[pgTypeOids.date] ?? nodePostgresParsers[pgTypeOids.date]) as (
+					value: string
+				) => unknown;
+
+				return {
+					subscribe: () => ({
+						onUpdate: (listener: (update: RawLiveQueryUpdate<TRow>) => void) => {
+							sendUpdate = listener;
+
+							return () => {};
+						},
+						onStateChange: () => () => {},
+						renew: vi.fn().mockResolvedValue(undefined),
+						unsubscribe: vi.fn()
+					}),
+					close: vi.fn()
+				} as unknown as RealtimeClient;
+			});
+		});
+
+		afterEach(async () => {
+			sync.stop();
+			await db.close();
+			vi.unstubAllEnvs();
+		});
+
+		it('keeps the calendar day of a date column', async () => {
+			await sync.start();
+
+			sendUpdate(rows(['r1', serverLyubo({ rated_on: parseDate('2026-11-21') as string })]));
+
+			await vi.waitFor(async () => {
+				const { rows: synced } = await db.sql<{
+					rated_on: string;
+				}>`SELECT rated_on FROM lyubo_synced`;
+
+				expect(synced).toEqual([{ rated_on: '2026-11-21' }]);
+			});
+		});
+	});
+
 	describe('renewBeforeExpiry', () => {
 		let sync: RealtimeSync;
 		let renew: ReturnType<typeof vi.fn>;
@@ -266,7 +326,9 @@ describe('RealtimeSync', () => {
 			await sync.start();
 
 			expect(createRealtimeClient).toHaveBeenCalledOnce();
-			expect(createRealtimeClient).toHaveBeenCalledWith({ url: 'wss://realtime.test' });
+			expect(createRealtimeClient).toHaveBeenCalledWith(
+				expect.objectContaining({ url: 'wss://realtime.test' })
+			);
 			expect(stateListeners).toHaveLength(SYNCED_TABLES.length);
 		});
 

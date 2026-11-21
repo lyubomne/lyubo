@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ICollectionTable } from './types';
+	import type { ICollectionTable, ICollectionTableProps } from './types';
 	import { type ITableColumns, TableExpandButtonSnippet } from '$lib/components/ui';
 	import { validationSchema } from './validationSchema';
 	import { createTagsSelectorRenderer } from '$lib/entities/TagsSelector';
@@ -13,8 +13,10 @@
 		CollectionTableFavoriteButtonSnippet
 	} from './components';
 
+	const { collectionId }: ICollectionTableProps = $props();
+
 	// TODO: tableName should be defined as prop in table component and be set to context
-	const columns: ITableColumns<ICollectionTable>[] = [
+	const columns: ITableColumns<ICollectionTable>[] = $derived([
 		{
 			name: 'review',
 			title: null,
@@ -70,7 +72,7 @@
 		{
 			name: 'tags',
 			title: 'Tags',
-			...createTagsSelectorRenderer(),
+			...createTagsSelectorRenderer({ collectionId }),
 			width: 120,
 			expandableRows: [
 				null,
@@ -87,9 +89,8 @@
 			]
 		},
 		{
-			// TODO: watched_on is too specific. Column name should be more generic
-			name: 'watched_on',
-			title: 'Watched on',
+			name: 'rated_on',
+			title: 'Rated on',
 			renderer: CollectionTableDatePickerSnippet,
 			width: 120,
 			expandableRows: [
@@ -125,7 +126,7 @@
 				]
 			]
 		}
-	];
+	]);
 </script>
 
-<DataTable {columns} name="lyubo_with_tags" />
+<DataTable {columns} name="lyubo_with_tags" filter={{ collection_id: collectionId }} />

@@ -4,13 +4,22 @@ import type { TableDescriptor } from './types';
 export const lyuboTable: TableDescriptor = {
 	table: 'lyubo',
 	primaryKey: ['id'],
-	writableColumns: ['name', 'rating', 'review', 'tags', 'favorite', 'watched_on', 'created_at'],
+	writableColumns: [
+		'collection_id',
+		'name',
+		'rating',
+		'review',
+		'tags',
+		'favorite',
+		'rated_on',
+		'created_at'
+	],
 	allow: {
 		insert: true,
 		update: true,
 		delete: true
 	},
 	liveQuery: rawSql(
-		`SELECT id, name, rating, review, favorite, watched_on, created_at, write_id FROM lyubo`
+		`SELECT id, collection_id, name, rating, review, favorite, rated_on, created_at, write_id FROM lyubo`
 	)
 };

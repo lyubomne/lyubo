@@ -1,7 +1,8 @@
 import { PGlite } from '@electric-sql/pglite';
 import { type PGliteWithLive, live } from '@electric-sql/pglite/live';
 
-import { LOCAL_SCHEMAS } from './schemas';
+import { PGLITE_PARSERS } from './parsers';
+import { applyLocalSchema } from './schemas';
 import { getContext, setContext } from 'svelte';
 import type { TNillable } from '$lib/common/types';
 import { RealtimeSync, SYNCED_TABLES } from './sync';
@@ -17,12 +18,11 @@ class DBStore {
 		const pglite: PGliteWithLive = await PGlite.create(DATA_DIR, {
 			extensions: {
 				live
-			}
+			},
+			parsers: PGLITE_PARSERS
 		});
 
-		for (const schema of LOCAL_SCHEMAS) {
-			await pglite.exec(schema);
-		}
+		await applyLocalSchema(pglite);
 
 		void new RealtimeSync(pglite, SYNCED_TABLES).start();
 

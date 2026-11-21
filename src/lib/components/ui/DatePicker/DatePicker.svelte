@@ -101,8 +101,11 @@
 				height: var(--size-32);
 			}
 
+			/* Inter's digits differ in width: tabular ones keep every date and its icon in line */
 			[data-date-field-input] {
 				display: flex;
+				align-items: center;
+				font-variant-numeric: tabular-nums;
 			}
 
 			[data-date-field-segment] {
@@ -150,6 +153,7 @@
 			}
 
 			[data-calendar-day] {
+				font-variant-numeric: tabular-nums;
 				width: 100%;
 				display: inline-flex;
 				align-items: center;

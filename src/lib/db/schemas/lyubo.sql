@@ -7,11 +7,12 @@
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS lyubo_synced(
   id uuid PRIMARY KEY,
+  collection_id uuid NOT NULL,
   name text NOT NULL DEFAULT '',
   rating numeric(3, 1) NOT NULL DEFAULT 0,
   review text NOT NULL DEFAULT '',
   favorite boolean NOT NULL DEFAULT FALSE,
-  watched_on text NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'),
+  rated_on date NOT NULL DEFAULT CURRENT_DATE,
   created_at timestamptz NOT NULL DEFAULT NOW(),
   write_id uuid
 );
@@ -21,11 +22,12 @@ CREATE TABLE IF NOT EXISTS lyubo_synced(
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS lyubo_local(
   id uuid PRIMARY KEY,
+  collection_id uuid NOT NULL,
   name text NOT NULL DEFAULT '',
   rating numeric(3, 1) NOT NULL DEFAULT 0,
   review text NOT NULL DEFAULT '',
   favorite boolean NOT NULL DEFAULT FALSE,
-  watched_on text NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'),
+  rated_on date NOT NULL DEFAULT CURRENT_DATE,
   created_at timestamptz NOT NULL DEFAULT NOW(),
   changed_columns text[],
   is_deleted boolean NOT NULL DEFAULT FALSE,
@@ -38,6 +40,11 @@ CREATE TABLE IF NOT EXISTS lyubo_local(
 CREATE OR REPLACE VIEW lyubo AS
 SELECT
   COALESCE(local.id, synced.id) AS id,
+  CASE WHEN 'collection_id' = ANY (local.changed_columns) THEN
+    local.collection_id
+  ELSE
+    synced.collection_id
+  END AS collection_id,
   CASE WHEN 'name' = ANY (local.changed_columns) THEN
     local.name
   ELSE
@@ -58,11 +65,11 @@ SELECT
   ELSE
     synced.favorite
   END AS favorite,
-  CASE WHEN 'watched_on' = ANY (local.changed_columns) THEN
-    local.watched_on
+  CASE WHEN 'rated_on' = ANY (local.changed_columns) THEN
+    local.rated_on
   ELSE
-    synced.watched_on
-  END AS watched_on,
+    synced.rated_on
+  END AS rated_on,
   CASE WHEN 'created_at' = ANY (local.changed_columns) THEN
     local.created_at
   ELSE
@@ -122,8 +129,8 @@ CREATE OR REPLACE FUNCTION lyubo_insert_trigger()
 DECLARE
   local_row lyubo_local%ROWTYPE;
 BEGIN
-  INSERT INTO lyubo_local(id, name, rating, review, favorite, watched_on, created_at, changed_columns, write_id)
-    VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.rating, 0), COALESCE(NEW.review, ''), COALESCE(NEW.favorite, FALSE), COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')), COALESCE(NEW.created_at, NOW()), ARRAY['name', 'rating', 'review', 'favorite', 'watched_on', 'created_at'], gen_random_uuid())
+  INSERT INTO lyubo_local(id, collection_id, name, rating, review, favorite, rated_on, created_at, changed_columns, write_id)
+    VALUES (NEW.id, NEW.collection_id, COALESCE(NEW.name, ''), COALESCE(NEW.rating, 0), COALESCE(NEW.review, ''), COALESCE(NEW.favorite, FALSE), COALESCE(NEW.rated_on, CURRENT_DATE), COALESCE(NEW.created_at, NOW()), ARRAY['collection_id', 'name', 'rating', 'review', 'favorite', 'rated_on', 'created_at'], gen_random_uuid())
   RETURNING
     * INTO local_row;
   PERFORM
@@ -155,6 +162,9 @@ BEGIN
     lyubo_synced
   WHERE
     id = NEW.id;
+  IF NEW.collection_id IS DISTINCT FROM synced.collection_id THEN
+    cols := array_append(cols, 'collection_id');
+  END IF;
   IF NEW.name IS DISTINCT FROM synced.name THEN
     cols := array_append(cols, 'name');
   END IF;
@@ -167,21 +177,22 @@ BEGIN
   IF NEW.favorite IS DISTINCT FROM synced.favorite THEN
     cols := array_append(cols, 'favorite');
   END IF;
-  IF NEW.watched_on IS DISTINCT FROM synced.watched_on THEN
-    cols := array_append(cols, 'watched_on');
+  IF NEW.rated_on IS DISTINCT FROM synced.rated_on THEN
+    cols := array_append(cols, 'rated_on');
   END IF;
   IF NEW.created_at IS DISTINCT FROM synced.created_at THEN
     cols := array_append(cols, 'created_at');
   END IF;
-  INSERT INTO lyubo_local
-    VALUES (NEW.id, NEW.name, NEW.rating, NEW.review, NEW.favorite, NEW.watched_on, NEW.created_at, cols, FALSE, wid)
+  INSERT INTO lyubo_local(id, collection_id, name, rating, review, favorite, rated_on, created_at, changed_columns, is_deleted, write_id)
+    VALUES (NEW.id, NEW.collection_id, NEW.name, NEW.rating, NEW.review, NEW.favorite, NEW.rated_on, NEW.created_at, cols, FALSE, wid)
   ON CONFLICT (id)
     DO UPDATE SET
+      collection_id = EXCLUDED.collection_id,
       name = EXCLUDED.name,
       rating = EXCLUDED.rating,
       review = EXCLUDED.review,
       favorite = EXCLUDED.favorite,
-      watched_on = EXCLUDED.watched_on,
+      rated_on = EXCLUDED.rated_on,
       created_at = EXCLUDED.created_at,
       changed_columns = EXCLUDED.changed_columns,
       write_id = wid;
@@ -209,8 +220,9 @@ BEGIN
     WHERE
       id = OLD.id) THEN
   -- Hide the synced row until the delete syncs back
-  INSERT INTO lyubo_local(id, is_deleted, write_id)
-    VALUES (OLD.id, TRUE, wid)
+  -- A tombstone keeps the collection: the column is NOT NULL
+  INSERT INTO lyubo_local(id, collection_id, is_deleted, write_id)
+    VALUES (OLD.id, OLD.collection_id, TRUE, wid)
   ON CONFLICT (id)
     DO UPDATE SET
       is_deleted = TRUE,
@@ -258,11 +270,12 @@ CREATE OR REPLACE FUNCTION lyubo_synced_upsert(rows jsonb)
     jsonb_populate_recordset(NULL::lyubo_synced, rows)
   ON CONFLICT (id)
     DO UPDATE SET
+      collection_id = EXCLUDED.collection_id,
       name = EXCLUDED.name,
       rating = EXCLUDED.rating,
       review = EXCLUDED.review,
       favorite = EXCLUDED.favorite,
-      watched_on = EXCLUDED.watched_on,
+      rated_on = EXCLUDED.rated_on,
       created_at = EXCLUDED.created_at,
       write_id = EXCLUDED.write_id
     WHERE (lyubo_synced.*) IS DISTINCT FROM (EXCLUDED.*);

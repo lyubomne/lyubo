@@ -3,7 +3,7 @@
 	import type { IDataInputSnippetProps } from './types';
 	import { Input } from '$lib/components/ui';
 	import type { HTMLInputAttributes } from 'svelte/elements';
-	import { getDB, updateFieldById } from '$lib/db';
+	import { getDB, getUniqueViolationMessage, updateFieldById } from '$lib/db';
 
 	const {
 		tableName,
@@ -34,12 +34,23 @@
 		}
 	};
 
-	const commit = () => {
+	const commit = async () => {
 		if (error || value === localValue) {
 			return;
 		}
 
-		void updateFieldById({ db: dbStore.db, name, value: localValue, rowId, tableName });
+		try {
+			await updateFieldById({ db: dbStore.db, name, value: localValue, rowId, tableName });
+		} catch (err) {
+			// The local schema rejects a duplicate value before it reaches the change log
+			const message = getUniqueViolationMessage(err);
+
+			if (!message) {
+				throw err;
+			}
+
+			error = message;
+		}
 	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {

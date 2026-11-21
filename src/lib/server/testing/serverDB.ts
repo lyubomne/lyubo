@@ -36,7 +36,10 @@ export const createServerDB = async (): Promise<IServerDB> => {
 	return {
 		url,
 		sql,
-		reset: () => pglite.exec(`${SERVER_SCHEMA}\nTRUNCATE lyubo, tags, lyubo_tags;`).then(() => {}),
+		reset: () =>
+			pglite
+				.exec(`${SERVER_SCHEMA}\nTRUNCATE collections, lyubo, tags, lyubo_tags;`)
+				.then(() => {}),
 		close: async () => {
 			await sql.end();
 			await server.stop();

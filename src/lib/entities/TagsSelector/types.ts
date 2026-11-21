@@ -7,6 +7,8 @@ export interface ITagsSelectorBaseProps {
 }
 
 export interface ITagsSelectorRendererProps {
+	// The collection of the table: a record gets only tags of its own collection
+	collectionId: string;
 	valueKey?: string;
 	labelKey?: string;
 	placeholder?: string;

@@ -77,3 +77,7 @@ export const unassignRelation = ({
       AND ${identifier`${rightKey}`} = ${rightId}
   `;
 };
+
+// The message of a write the local schema rejected as a duplicate (SQLSTATE 23505), to show it
+export const getUniqueViolationMessage = (err: unknown): string | undefined =>
+	err instanceof Error && 'code' in err && err.code === '23505' ? err.message : undefined;

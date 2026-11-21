@@ -7,6 +7,7 @@
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tags_synced(
   id uuid PRIMARY KEY,
+  collection_id uuid NOT NULL,
   name text NOT NULL DEFAULT '',
   created_at timestamp with time zone NOT NULL DEFAULT NOW(),
   write_id uuid
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS tags_synced(
 -- ---------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tags_local(
   id uuid PRIMARY KEY,
+  collection_id uuid NOT NULL,
   name text NOT NULL DEFAULT '',
   created_at timestamp with time zone NOT NULL DEFAULT NOW(),
   changed_columns text[],
@@ -30,6 +32,11 @@ CREATE TABLE IF NOT EXISTS tags_local(
 CREATE OR REPLACE VIEW tags AS
 SELECT
   COALESCE(local.id, synced.id) AS id,
+  CASE WHEN 'collection_id' = ANY (local.changed_columns) THEN
+    local.collection_id
+  ELSE
+    synced.collection_id
+  END AS collection_id,
   CASE WHEN 'name' = ANY (local.changed_columns) THEN
     local.name
   ELSE
@@ -46,6 +53,31 @@ FROM
 WHERE
   local.id IS NULL
   OR local.is_deleted = FALSE;
+
+-- ---------------------------------------------------------
+-- One name per collection
+-- ---------------------------------------------------------
+-- The server rejects a second tag with the same name (any case) in one collection, and a rejected
+-- change rolls back every unsent local write. Rejecting it here keeps it out of the change log
+CREATE OR REPLACE FUNCTION tags_assert_unique_name(tag_id uuid, tag_collection_id uuid, tag_name text)
+  RETURNS void
+  AS $$
+BEGIN
+  IF EXISTS (
+    SELECT
+      1
+    FROM
+      tags
+    WHERE
+      collection_id = tag_collection_id
+      AND lower(name) = lower(tag_name)
+      AND id <> tag_id) THEN
+  RAISE EXCEPTION 'A tag with this name already exists'
+    USING ERRCODE = 'unique_violation';
+END IF;
+END;
+$$
+LANGUAGE plpgsql;
 
 -- ---------------------------------------------------------
 -- Cleanup local state when synced rows arrive
@@ -101,8 +133,10 @@ BEGIN
       id = NEW.id) THEN
   RAISE EXCEPTION 'Cannot insert: id already exists in synced table';
 END IF;
-INSERT INTO tags_local(id, name, created_at, changed_columns, write_id)
-  VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), ARRAY['name', 'created_at'], gen_random_uuid())
+  PERFORM
+    tags_assert_unique_name(NEW.id, NEW.collection_id, COALESCE(NEW.name, ''));
+INSERT INTO tags_local(id, collection_id, name, created_at, changed_columns, write_id)
+  VALUES (NEW.id, NEW.collection_id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), ARRAY['collection_id', 'name', 'created_at'], gen_random_uuid())
 RETURNING
   * INTO local_row;
   PERFORM
@@ -128,6 +162,10 @@ BEGIN
   IF edited = '{}'::jsonb THEN
     RETURN NEW;
   END IF;
+  IF edited ? 'name' THEN
+    PERFORM
+      tags_assert_unique_name(NEW.id, NEW.collection_id, COALESCE(NEW.name, ''));
+  END IF;
   SELECT
     * INTO synced
   FROM
@@ -135,16 +173,20 @@ BEGIN
   WHERE
     id = NEW.id;
   -- Changed columns are always relative to the synced row, so every edit recomputes them
+  IF NEW.collection_id IS DISTINCT FROM synced.collection_id THEN
+    changed_cols := array_append(changed_cols, 'collection_id');
+  END IF;
   IF NEW.name IS DISTINCT FROM synced.name THEN
     changed_cols := array_append(changed_cols, 'name');
   END IF;
   IF NEW.created_at IS DISTINCT FROM synced.created_at THEN
     changed_cols := array_append(changed_cols, 'created_at');
   END IF;
-  INSERT INTO tags_local(id, name, created_at, changed_columns, write_id)
-    VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), changed_cols, local_write_id)
+  INSERT INTO tags_local(id, collection_id, name, created_at, changed_columns, write_id)
+    VALUES (NEW.id, NEW.collection_id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), changed_cols, local_write_id)
   ON CONFLICT (id)
     DO UPDATE SET
+      collection_id = EXCLUDED.collection_id,
       name = EXCLUDED.name,
       created_at = EXCLUDED.created_at,
       changed_columns = EXCLUDED.changed_columns,
@@ -173,8 +215,9 @@ BEGIN
     WHERE
       id = OLD.id) THEN
   -- Hide the synced row until the delete syncs back
-  INSERT INTO tags_local(id, is_deleted, write_id)
-    VALUES (OLD.id, TRUE, local_write_id)
+  -- A tombstone keeps the collection: the column is NOT NULL
+  INSERT INTO tags_local(id, collection_id, is_deleted, write_id)
+    VALUES (OLD.id, OLD.collection_id, TRUE, local_write_id)
   ON CONFLICT (id)
     DO UPDATE SET
       is_deleted = TRUE,
@@ -222,6 +265,7 @@ CREATE OR REPLACE FUNCTION tags_synced_upsert(rows jsonb)
     jsonb_populate_recordset(NULL::tags_synced, rows)
   ON CONFLICT (id)
     DO UPDATE SET
+      collection_id = EXCLUDED.collection_id,
       name = EXCLUDED.name,
       created_at = EXCLUDED.created_at,
       write_id = EXCLUDED.write_id

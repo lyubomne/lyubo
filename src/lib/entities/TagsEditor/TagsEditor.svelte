@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { ITag } from './types';
+	import { query } from '@electric-sql/pglite/template';
+	import type { ITag, ITagsEditorProps } from './types';
 	import { Popover } from 'bits-ui';
 	import { getDB, LiveDB } from '$lib/db';
 	import { Button, DownIcon } from '$lib/components/ui';
@@ -7,6 +8,8 @@
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
 	import TagsEditorItem from './TagsEditorItem.svelte';
+
+	const { collectionId }: ITagsEditorProps = $props();
 
 	// const liveDB = useLiveDB<ITagsTable>('SELECT * FROM tags ORDER BY created_at DESC');
 	let tableDBLive: TNillable<LiveDB<ITag>> = $state();
@@ -16,7 +19,10 @@
 	// Otherwise live will be start but no listeners will be triggered
 	tick().then(() => {
 		if (dbStore.db) {
-			tableDBLive = new LiveDB<ITag>(dbStore.db, `SELECT * FROM tags ORDER BY created_at DESC`);
+			tableDBLive = new LiveDB<ITag>(
+				dbStore.db,
+				query`SELECT * FROM tags WHERE collection_id = ${collectionId} ORDER BY created_at DESC`
+			);
 		}
 	});
 </script>
@@ -33,7 +39,7 @@
 			<Popover.Portal>
 				<div class="tags-editor-content">
 					<Popover.Content sideOffset={10}>
-						<TagsEditorNewItem />
+						<TagsEditorNewItem {collectionId} />
 						{#each tableDBLive.data as tag, i (i + tag.id)}
 							<TagsEditorItem {tag} />
 						{/each}

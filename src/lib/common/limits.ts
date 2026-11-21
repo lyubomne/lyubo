@@ -6,6 +6,7 @@ export const MAX_SYNC_REQUEST_CHANGES = 500;
 // Longest text the server accepts per column, in characters. The same numbers are CHECK
 // constraints in `neon/schema.sql`; the client validates against them before it writes
 export const ColumnLimits = {
+	collections: { name: 100 },
 	lyubo: { name: 200, review: 20_000 },
 	tags: { name: 50 }
 } as const;

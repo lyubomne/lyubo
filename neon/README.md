@@ -36,6 +36,31 @@ Run the CLI pinned and without analytics, for example
    neon connection-string <branch> --role-name lyubo_app --pooled
    ```
 
+`neon/schema.sql` creates no rows. Until the app can create a collection (roadmap stage 3), a new
+branch shows an empty page: insert one by hand,
+`INSERT INTO collections (id, name) VALUES (gen_random_uuid(), 'Collection');`.
+
+## Migrations
+
+`neon/schema.sql` is always the full current schema: a new branch needs only that file (step 3).
+A branch created earlier needs the migrations it has not had yet, in order, and then
+`neon/schema.sql`, which adds the triggers and `CHECK` constraints:
+
+```sh
+psql "$DATABASE_URL_UNPOOLED" -v ON_ERROR_STOP=1 -f neon/migrations/001_collections.sql
+psql "$DATABASE_URL_UNPOOLED" -v ON_ERROR_STOP=1 -f neon/schema.sql
+```
+
+Each migration runs in one transaction and runs only once. `000_initial.sql` is the schema before
+migrations existed; it is there for the tests and is never applied to a branch.
+
+| Migration             | What it does                                                                  | `dev`              |
+| --------------------- | ----------------------------------------------------------------------------- | ------------------ |
+| `001_collections.sql` | `collections`, default collection, `collection_id`, `watched_on` → `rated_on` | applied 2026-11-21 |
+
+The local PGlite database has no migrations: when its schema changes, the app drops it and fills
+it again from Neon (`LOCAL_SCHEMA_VERSION`). Local changes that were not sent yet are lost.
+
 ## Notes
 
 - Run `neon/schema.sql` again after every change to it. It is idempotent: tables are created

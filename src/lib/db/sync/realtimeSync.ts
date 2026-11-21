@@ -1,5 +1,7 @@
 import {
 	createRealtimeClient,
+	defineParsers,
+	pgTypeOids,
 	type RawLiveQuerySubscription,
 	type RawLiveQueryUpdate,
 	type RealtimeClient,
@@ -27,6 +29,10 @@ interface ILiveQueryResponse {
 const RENEW_EARLY_MS = 10_000;
 const RETRY_MS = 1_000;
 const RESTART_MS = 5_000;
+
+// A `date` stays the 'YYYY-MM-DD' string Postgres sends. The client would turn it into a Date at
+// local midnight, which JSON.stringify writes as the day before in time zones east of UTC
+const REALTIME_PARSERS = defineParsers({ [pgTypeOids.date]: (value: string) => value });
 
 /*
  * Read-path sync: keeps the local `*_synced` tables equal to live queries on Neon Realtime.
@@ -58,7 +64,7 @@ export class RealtimeSync {
 				return;
 			}
 
-			const client = createRealtimeClient({ url: responses[0].url });
+			const client = createRealtimeClient({ url: responses[0].url, parsers: REALTIME_PARSERS });
 
 			this.#client = client;
 			this.#tables.forEach((table, i) => this.subscribe(client, table, responses[i].sealed));

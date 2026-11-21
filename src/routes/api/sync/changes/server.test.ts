@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 
 import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
 import { type IServerDB, createServerDB } from '$lib/server/testing';
-import { LYUBO_ID, TAG_ID, WRITE_ID } from '$lib/testing';
+import { COLLECTION_ID, LYUBO_ID, TAG_ID, WRITE_ID } from '$lib/testing';
 
 type TPost = typeof import('./+server').POST;
 
@@ -28,7 +28,7 @@ describe('POST /api/sync/changes', () => {
 		value,
 		write_id: WRITE_ID
 	});
-	const count = async (table: 'lyubo' | 'tags' | 'lyubo_tags') =>
+	const count = async (table: 'collections' | 'lyubo' | 'tags' | 'lyubo_tags') =>
 		(await serverDB.sql`SELECT 1 FROM ${serverDB.sql(table)}`).length;
 
 	beforeAll(async () => {
@@ -51,11 +51,13 @@ describe('POST /api/sync/changes', () => {
 
 	it('applies every transaction of the request and responds 200', async () => {
 		const response = await post([
-			transaction('1', insert('lyubo', { id: LYUBO_ID })),
-			transaction('2', insert('tags', { id: TAG_ID }))
+			transaction('1', insert('collections', { id: COLLECTION_ID })),
+			transaction('2', insert('lyubo', { id: LYUBO_ID, collection_id: COLLECTION_ID })),
+			transaction('3', insert('tags', { id: TAG_ID, collection_id: COLLECTION_ID }))
 		]);
 
 		expect(response).toEqual({ status: 200, body: { status: 'OK' } });
+		expect(await count('collections')).toBe(1);
 		expect(await count('lyubo')).toBe(1);
 		expect(await count('tags')).toBe(1);
 	});
@@ -128,8 +130,12 @@ describe('POST /api/sync/changes', () => {
 
 	it('responds 400 and applies nothing when Postgres rejects one of the changes', async () => {
 		const response = await post([
-			transaction('1', insert('tags', { id: TAG_ID })),
-			// Violates the foreign key: the lyubo row does not exist
+			transaction(
+				'1',
+				insert('collections', { id: COLLECTION_ID }),
+				insert('tags', { id: TAG_ID, collection_id: COLLECTION_ID })
+			),
+			// The lyubo row does not exist
 			transaction('2', insert('lyubo_tags', { lyubo_id: LYUBO_ID, tag_id: TAG_ID }))
 		]);
 

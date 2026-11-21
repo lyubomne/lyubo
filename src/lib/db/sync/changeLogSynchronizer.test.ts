@@ -3,7 +3,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import api from '$lib/api/client';
 import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
-import { LYUBO_ID, TAG_ID, createLocalDB, readChangeLog, serverLyubo, syncIn } from '$lib/testing';
+import {
+	COLLECTION_ID,
+	LYUBO_ID,
+	TAG_ID,
+	createLocalDB,
+	readChangeLog,
+	serverLyubo,
+	syncIn
+} from '$lib/testing';
 import { ChangeLogSynchronizer } from './changeLogSynchronizer';
 
 // The network is the only boundary replaced: the change log, triggers and rollback are real
@@ -24,7 +32,7 @@ const sentChanges = () =>
 	);
 // One transaction that inserts `count` rows
 const insertRows = (db: PGliteWithLive, count: number, review = '') =>
-	db.sql`INSERT INTO lyubo (id, review) SELECT gen_random_uuid(), ${review} FROM generate_series(1, ${count})`;
+	db.sql`INSERT INTO lyubo (id, collection_id, review) SELECT gen_random_uuid(), ${COLLECTION_ID}, ${review} FROM generate_series(1, ${count})`;
 const change = (overrides: Partial<TChange>): TChange => ({
 	id: 1,
 	table_name: 'lyubo',
@@ -59,8 +67,8 @@ describe('ChangeLogSynchronizer', () => {
 		});
 
 		it('posts logged changes to the changes endpoint, one entry per transaction', async () => {
-			await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
-			await db.sql`INSERT INTO tags (id, name) VALUES (${TAG_ID}, 'b')`;
+			await db.sql`INSERT INTO lyubo (id, collection_id, name) VALUES (${LYUBO_ID}, ${COLLECTION_ID}, 'a')`;
+			await db.sql`INSERT INTO tags (id, collection_id, name) VALUES (${TAG_ID}, ${COLLECTION_ID}, 'b')`;
 			respond(200);
 
 			await synchronizer.process();
@@ -91,7 +99,7 @@ describe('ChangeLogSynchronizer', () => {
 
 		describe('when the server accepts the changes', () => {
 			it('clears them from the log and keeps the optimistic rows', async () => {
-				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+				await db.sql`INSERT INTO lyubo (id, collection_id, name) VALUES (${LYUBO_ID}, ${COLLECTION_ID}, 'a')`;
 				respond(200);
 
 				await synchronizer.process();
@@ -105,7 +113,8 @@ describe('ChangeLogSynchronizer', () => {
 			it('drops all local writes and the log, keeping the synced rows', async () => {
 				await syncIn(db, 'lyubo', [serverLyubo({ name: 'server' })]);
 				await db.sql`UPDATE lyubo SET name = 'local' WHERE id = ${LYUBO_ID}`;
-				await db.sql`INSERT INTO tags (id, name) VALUES (${TAG_ID}, 'new')`;
+				await db.sql`INSERT INTO tags (id, collection_id, name) VALUES (${TAG_ID}, ${COLLECTION_ID}, 'new')`;
+				await db.sql`INSERT INTO collections (id) VALUES (${COLLECTION_ID})`;
 				respond(400);
 
 				await synchronizer.process();
@@ -114,6 +123,7 @@ describe('ChangeLogSynchronizer', () => {
 
 				expect(rows).toEqual([{ name: 'server' }]);
 				expect((await db.sql`SELECT 1 FROM tags`).rows).toHaveLength(0);
+				expect((await db.sql`SELECT 1 FROM collections`).rows).toHaveLength(0);
 				expect(await readChangeLog(db)).toHaveLength(0);
 			});
 		});
@@ -131,7 +141,7 @@ describe('ChangeLogSynchronizer', () => {
 				{ failure: 'a 500 response', status: 500 },
 				{ failure: 'no response after all network retries', status: undefined }
 			])('sends the same changes again after $failure', async ({ status }) => {
-				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+				await db.sql`INSERT INTO lyubo (id, collection_id, name) VALUES (${LYUBO_ID}, ${COLLECTION_ID}, 'a')`;
 				respond(status, 200);
 
 				const processing = synchronizer.process();
@@ -144,7 +154,7 @@ describe('ChangeLogSynchronizer', () => {
 			});
 
 			it('waits 1 s before the first retry and twice as long before each next one', async () => {
-				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+				await db.sql`INSERT INTO lyubo (id, collection_id, name) VALUES (${LYUBO_ID}, ${COLLECTION_ID}, 'a')`;
 				respond(500, 500, 200);
 
 				void synchronizer.process();
@@ -163,7 +173,7 @@ describe('ChangeLogSynchronizer', () => {
 			});
 
 			it('stops waiting and sends nothing more when it is stopped', async () => {
-				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+				await db.sql`INSERT INTO lyubo (id, collection_id, name) VALUES (${LYUBO_ID}, ${COLLECTION_ID}, 'a')`;
 				respond(500);
 				const processing = synchronizer.process();
 				await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1), { interval: 0 });
@@ -230,7 +240,7 @@ describe('ChangeLogSynchronizer', () => {
 			await synchronizer.start();
 			respond(200);
 
-			await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+			await db.sql`INSERT INTO lyubo (id, collection_id, name) VALUES (${LYUBO_ID}, ${COLLECTION_ID}, 'a')`;
 
 			await vi.waitFor(() => expect(request).toHaveBeenCalledOnce());
 			expect(request).toHaveBeenCalledWith(
