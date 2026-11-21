@@ -8,16 +8,16 @@
 
 	const dbStore = getDB();
 
-	let isCommiting = $state(false);
+	let isCommitting = $state(false);
 	let localIsFavorite = $state(dbIsFavorite);
-	let commitedIsFavorite = $derived.by(() =>
-		untrack(() => isCommiting) ? localIsFavorite : dbIsFavorite
+	let committedIsFavorite = $derived.by(() =>
+		untrack(() => isCommitting) ? localIsFavorite : dbIsFavorite
 	);
 
 	// TODO: Rewrite it. Use id, or number to track the last commit.
-	// Otherwise you just can set isCommiting as false while there is another commitment in process
+	// Otherwise you just can set isCommitting as false while there is another commitment in process
 	const commit = async () => {
-		isCommiting = true;
+		isCommitting = true;
 		localIsFavorite = !localIsFavorite;
 
 		// TODO: Do not hardcode tableName, take it from context
@@ -28,16 +28,16 @@
 			rowId,
 			tableName: 'lyubo'
 		});
-		isCommiting = false;
+		isCommitting = false;
 	};
 </script>
 
-<div class={['favorite-button', commitedIsFavorite && 'favorite']}>
+<div class={['favorite-button', committedIsFavorite && 'favorite']}>
 	<IconButton
 		icon={HeartIcon}
 		onclick={commit}
 		aria-label="favorite"
-		title={commitedIsFavorite ? 'unfavorite' : 'favorite'}
+		title={committedIsFavorite ? 'unfavorite' : 'favorite'}
 	/>
 </div>
 

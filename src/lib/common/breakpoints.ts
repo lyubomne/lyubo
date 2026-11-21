@@ -17,7 +17,7 @@ export const isBelowBreakpoint = (currentWidth: number, breakpoint: Breakpoint):
 	return currentWidth <= Breakpoints[breakpoint];
 };
 
-export const isLessThenCurrentBreakpoint = ({
+export const isLessThanCurrentBreakpoint = ({
 	newBreakpoint,
 	currentBreakpoint
 }: {

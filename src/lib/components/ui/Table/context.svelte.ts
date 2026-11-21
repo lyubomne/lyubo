@@ -1,6 +1,6 @@
 import type {
 	IBaseTableData,
-	ITableEpandableRowColumns,
+	ITableExpandableRowColumns,
 	ITableProps,
 	ITablePropsWithExpandable
 } from './types';
@@ -9,7 +9,7 @@ import { getContext, setContext } from 'svelte';
 class TableStore<TTableData extends IBaseTableData> {
 	columns: ITableProps<TTableData>['columns'];
 	data: ITableProps<TTableData>['data'];
-	expandableRowsColumns: ITableEpandableRowColumns<TTableData>[];
+	expandableRowsColumns: ITableExpandableRowColumns<TTableData>[];
 	expandedRows: Record<string, boolean>;
 
 	constructor(propsFn: () => ITablePropsWithExpandable<TTableData>) {

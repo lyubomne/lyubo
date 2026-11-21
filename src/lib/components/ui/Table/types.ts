@@ -55,13 +55,13 @@ export interface ITableProps<TTableData extends IBaseTableData> {
 	data: TTableData[];
 }
 
-export type ITableEpandableRowColumn<TTableData extends IBaseTableData> =
+export type ITableExpandableRowColumn<TTableData extends IBaseTableData> =
 	ITableColumns<TTableData> & { currentExpandableColumn: ITableExpandableColumnConfig };
 
-export type ITableEpandableRowColumns<TTableData extends IBaseTableData> =
-	(ITableEpandableRowColumn<TTableData> | null)[];
+export type ITableExpandableRowColumns<TTableData extends IBaseTableData> =
+	(ITableExpandableRowColumn<TTableData> | null)[];
 
 export type ITablePropsWithExpandable<TTableData extends IBaseTableData> =
 	ITableProps<TTableData> & {
-		expandableRowsColumns: ITableEpandableRowColumns<TTableData>[];
+		expandableRowsColumns: ITableExpandableRowColumns<TTableData>[];
 	};

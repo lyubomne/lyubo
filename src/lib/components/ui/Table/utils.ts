@@ -1,10 +1,10 @@
-import { isBelowBreakpoint, isLessThenCurrentBreakpoint } from '$lib/common/breakpoints';
+import { isBelowBreakpoint, isLessThanCurrentBreakpoint } from '$lib/common/breakpoints';
 import type { NonNullableRequired } from '$lib/common/types';
 import type {
 	IBaseTableData,
 	ITableActionColumn,
 	ITableColumns,
-	ITableEpandableRowColumns,
+	ITableExpandableRowColumns,
 	ITableExpandableColumnConfig
 } from './types';
 
@@ -27,7 +27,7 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 	currentWidth: number
 ) => {
 	const mainColumns: ITableColumns<TTableData>[] = [];
-	const expandableRowsColumns: ITableEpandableRowColumns<TTableData>[] = [];
+	const expandableRowsColumns: ITableExpandableRowColumns<TTableData>[] = [];
 
 	if (!currentWidth) {
 		return { mainColumns, expandableRowsColumns };
@@ -51,7 +51,7 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 			for (const config of expandableRow) {
 				if (
 					isBelowBreakpoint(currentWidth, config.breakpoint) &&
-					isLessThenCurrentBreakpoint({
+					isLessThanCurrentBreakpoint({
 						newBreakpoint: config.breakpoint,
 						currentBreakpoint: chosen?.config.breakpoint
 					})

@@ -2,7 +2,7 @@
 	import { getNestedValues, styleObjectToString } from '$lib/common/utils';
 	import { isActionColumn } from './utils';
 	import { getTableContext } from './context.svelte';
-	import type { ITableEpandableRowColumn, IBaseTableData, ITableColumns } from './types';
+	import type { ITableExpandableRowColumn, IBaseTableData, ITableColumns } from './types';
 
 	const tableContext = getTableContext();
 
@@ -10,7 +10,7 @@
 </script>
 
 {#snippet TableCell<TTableData extends IBaseTableData>(
-	column: ITableColumns<TTableData> | ITableEpandableRowColumn<TTableData>,
+	column: ITableColumns<TTableData> | ITableExpandableRowColumn<TTableData>,
 	dataItem: TTableData
 )}
 	{#if column.renderer}
