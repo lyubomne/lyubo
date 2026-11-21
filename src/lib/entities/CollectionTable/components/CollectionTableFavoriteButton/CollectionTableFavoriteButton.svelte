@@ -2,43 +2,41 @@
 	import { getDB, updateFieldById } from '$lib/db';
 	import type { ICollectionTableFavoriteButtonProps } from './types';
 	import { HeartIcon, IconButton } from '$lib/components/ui';
-	import { untrack } from 'svelte';
+	import { PendingWrite } from '$lib/common/pendingWrite';
 
 	const { value: dbIsFavorite, name, rowId }: ICollectionTableFavoriteButtonProps = $props();
 
 	const dbStore = getDB();
 
-	let isCommitting = $state(false);
-	// Writable derived: follows synced changes of the prop, and can be toggled locally
-	let localIsFavorite = $derived(dbIsFavorite);
-	let committedIsFavorite = $derived.by(() =>
-		untrack(() => isCommitting) ? localIsFavorite : dbIsFavorite
-	);
+	// Fast clicks write faster than the live query answers: show the latest click, not every
+	// intermediate DB value, and toggle from what is shown
+	const pendingWrite = new PendingWrite<boolean>();
+	// Writable derived: follows the DB value of the prop, and `commit` sets it at once
+	let localIsFavorite = $derived(pendingWrite.resolve(dbIsFavorite));
 
-	// TODO: Rewrite it. Use id, or number to track the last commit.
-	// Otherwise you just can set isCommitting as false while there is another commitment in process
 	const commit = async () => {
-		isCommitting = true;
-		localIsFavorite = !localIsFavorite;
+		const value = !localIsFavorite;
+		pendingWrite.start(value);
+		localIsFavorite = value;
 
-		// TODO: Do not hardcode tableName, take it from context
-		await updateFieldById({
-			db: dbStore.db,
-			name,
-			value: localIsFavorite,
-			rowId,
-			tableName: 'lyubo'
-		});
-		isCommitting = false;
+		try {
+			// TODO: Do not hardcode tableName, take it from context
+			await updateFieldById({ db: dbStore.db, name, value, rowId, tableName: 'lyubo' });
+			pendingWrite.finish(dbIsFavorite);
+		} catch (err) {
+			pendingWrite.fail();
+			localIsFavorite = dbIsFavorite;
+			console.error(err);
+		}
 	};
 </script>
 
-<div class={['favorite-button', committedIsFavorite && 'favorite']}>
+<div class={['favorite-button', localIsFavorite && 'favorite']}>
 	<IconButton
 		icon={HeartIcon}
 		onclick={commit}
 		aria-label="favorite"
-		title={committedIsFavorite ? 'unfavorite' : 'favorite'}
+		title={localIsFavorite ? 'unfavorite' : 'favorite'}
 	/>
 </div>
 
