@@ -30,7 +30,7 @@ Realtime for reads, and a local change log sent to the app's own API for writes.
 - **Local database:** PGlite (wrapped by custom `liveDB` module)
 - **Server database:** Postgres on Neon (Lakebase)
 - **Realtime/Sync:** Neon Realtime live queries, SvelteKit API routes
-- **Testing:** Vitest, @testing-library/svelte
+- **Testing:** Vitest (Node tests and browser tests with vitest-browser-svelte)
 
 ---
 
