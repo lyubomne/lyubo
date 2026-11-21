@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
 import { type IServerDB, createServerDB } from '$lib/server/testing';
 import { LYUBO_ID, TAG_ID, WRITE_ID } from '$lib/testing';
 
@@ -10,9 +11,10 @@ describe('POST /api/sync/changes', () => {
 	let serverDB: IServerDB;
 	let POST: TPost;
 
-	const post = async (body: unknown) => {
+	const post = async (body: unknown, headers: Record<string, string> = {}) => {
 		const request = new Request('http://localhost/api/sync/changes', {
 			method: 'POST',
+			headers: { origin: 'http://localhost', 'content-type': 'application/json', ...headers },
 			body: typeof body === 'string' ? body : JSON.stringify(body)
 		});
 		const response = await POST({ request } as Parameters<TPost>[0]);
@@ -70,7 +72,37 @@ describe('POST /api/sync/changes', () => {
 	it('responds 400 to a body that is not JSON', async () => {
 		const response = await post('{');
 
-		expect(response).toEqual({ status: 400, body: { errors: 'invalid json' } });
+		expect(response).toEqual({ status: 400, body: { error: 'invalid json' } });
+	});
+
+	it.each<{ name: string; status: number; headers: Record<string, string> }>([
+		{ name: 'a cross-site request', status: 403, headers: { origin: 'https://evil.example' } },
+		{
+			name: 'a body that is not declared as JSON',
+			status: 415,
+			headers: { 'content-type': 'text/plain' }
+		},
+		{
+			name: 'a body over the size limit',
+			status: 413,
+			headers: { 'content-length': String(MAX_SYNC_REQUEST_BYTES + 1) }
+		}
+	])('responds $status to $name and applies nothing', async ({ status, headers }) => {
+		const response = await post([transaction('1', insert('lyubo', { id: LYUBO_ID }))], headers);
+
+		expect(response.status).toBe(status);
+		expect(await count('lyubo')).toBe(0);
+	});
+
+	it('responds 400 to more changes than one request may carry', async () => {
+		const changes = Array.from({ length: MAX_SYNC_REQUEST_CHANGES + 1 }, () =>
+			insert('lyubo', { id: LYUBO_ID })
+		);
+
+		const response = await post([transaction('1', ...changes)]);
+
+		expect(response.status).toBe(400);
+		expect(await count('lyubo')).toBe(0);
 	});
 
 	it('responds 403 to a table outside the whitelist and applies nothing', async () => {

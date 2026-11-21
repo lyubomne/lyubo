@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ColumnLimits } from '$lib/common/limits';
 	import { Input } from '$lib/components/ui';
 	import { getDB } from '$lib/db';
 	import type { EventHandler } from 'svelte/elements';
@@ -20,7 +21,7 @@
 </script>
 
 <form onsubmit={handleNewTagSubmit}>
-	<Input name="new-tag" placeholder="Add a new tag" />
+	<Input name="new-tag" placeholder="Add a new tag" maxlength={ColumnLimits.tags.name} />
 </form>
 
 <style>

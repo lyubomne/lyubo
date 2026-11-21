@@ -1,8 +1,9 @@
 import { json } from '@sveltejs/kit';
 import postgres, { PostgresError } from 'postgres';
-import { ZodError } from 'zod';
 import { APP_DATABASE_URL } from '$env/static/private';
 
+import { MAX_SYNC_REQUEST_BYTES } from '$lib/common/limits';
+import { readJsonBody } from '$lib/server/http';
 import { ChangeRejectedError, TABLES, applyChange, transportSchema } from '$lib/server/sync';
 
 // Restricted role (DML only), see APP_DATABASE_URL in .env.example
@@ -13,13 +14,19 @@ const isDataError = (err: unknown): boolean =>
 	err instanceof PostgresError && (err.code.startsWith('22') || err.code.startsWith('23'));
 
 export async function POST({ request }) {
-	let payload;
+	const read = await readJsonBody(request, MAX_SYNC_REQUEST_BYTES);
 
-	try {
-		payload = transportSchema.parse(await request.json());
-	} catch (err) {
-		return json({ errors: err instanceof ZodError ? err.issues : 'invalid json' }, { status: 400 });
+	if (!read.ok) {
+		return json({ error: read.error }, { status: read.status });
 	}
+
+	const parsed = transportSchema.safeParse(read.body);
+
+	if (!parsed.success) {
+		return json({ errors: parsed.error.issues }, { status: 400 });
+	}
+
+	const payload = parsed.data;
 
 	for (const tx of payload) {
 		for (const change of tx.changes) {

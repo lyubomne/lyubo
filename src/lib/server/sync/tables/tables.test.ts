@@ -1,7 +1,9 @@
 import { PGlite } from '@electric-sql/pglite';
+import { identifier } from '@electric-sql/pglite/template';
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { ColumnLimits } from '$lib/common/limits';
 import { SYNCED_TABLES } from '$lib/db';
 import { SERVER_SCHEMA } from '$lib/server/testing';
 import { createLocalDB } from '$lib/testing';
@@ -68,6 +70,50 @@ describe('synced table contract', () => {
 			);
 
 			expect(fields.map((f) => f.name).sort()).toEqual(await localColumns(`${table}_synced`));
+		});
+	});
+
+	// The client validates against ColumnLimits; the server must accept exactly as much
+	describe('column limits', () => {
+		const limits = Object.entries(ColumnLimits).flatMap(([table, columns]) =>
+			Object.entries(columns).map(([column, limit]) => ({ table, column, limit }))
+		);
+		const insert = (table: string, column: string, value: unknown) =>
+			serverDB.sql`
+				INSERT INTO ${identifier`${table}`} (id, ${identifier`${column}`})
+				VALUES (gen_random_uuid(), ${value})
+			`;
+
+		// Characters, not bytes: Cyrillic takes two bytes each in UTF-8
+		it.each(limits)(
+			'accepts $table.$column of $limit characters',
+			async ({ table, column, limit }) => {
+				const result = insert(table, column, 'ж'.repeat(limit));
+
+				await expect(result).resolves.toBeDefined();
+			}
+		);
+
+		it.each(limits)(
+			'rejects $table.$column over $limit characters',
+			async ({ table, column, limit }) => {
+				const result = insert(table, column, 'a'.repeat(limit + 1));
+
+				await expect(result).rejects.toMatchObject({ code: '23514' });
+			}
+		);
+
+		it.each([
+			{ rating: -0.1, isAccepted: false },
+			{ rating: 0, isAccepted: true },
+			{ rating: 10, isAccepted: true },
+			{ rating: 10.1, isAccepted: false }
+		])('accepts lyubo.rating $rating: $isAccepted', async ({ rating, isAccepted }) => {
+			const result = insert('lyubo', 'rating', rating);
+
+			await (isAccepted
+				? expect(result).resolves.toBeDefined()
+				: expect(result).rejects.toMatchObject({ code: '23514' }));
 		});
 	});
 });

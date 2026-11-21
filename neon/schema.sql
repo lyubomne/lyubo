@@ -5,6 +5,8 @@
 -- The app writes through the restricted role `lyubo_app` (APP_DATABASE_URL):
 --   neon roles create --branch <branch> --name lyubo_app --access read_write
 -- Neon Realtime needs a primary key on every table and no row-level security.
+-- The CHECK constraints are dropped and added again, so a second run applies changed limits to
+-- existing tables too. The text limits match `ColumnLimits` in `src/lib/common/limits.ts`.
 -- =========================================================
 -- ---------------------------------------------------------
 -- lyubo
@@ -20,6 +22,14 @@ CREATE TABLE IF NOT EXISTS lyubo(
   write_id uuid
 );
 
+ALTER TABLE lyubo
+  DROP CONSTRAINT IF EXISTS lyubo_name_length,
+  DROP CONSTRAINT IF EXISTS lyubo_review_length,
+  DROP CONSTRAINT IF EXISTS lyubo_rating_range,
+  ADD CONSTRAINT lyubo_name_length CHECK (char_length(name) <= 200),
+  ADD CONSTRAINT lyubo_review_length CHECK (char_length(review) <= 20000),
+  ADD CONSTRAINT lyubo_rating_range CHECK (rating BETWEEN 0 AND 10);
+
 -- ---------------------------------------------------------
 -- tags
 -- ---------------------------------------------------------
@@ -29,6 +39,10 @@ CREATE TABLE IF NOT EXISTS tags(
   created_at timestamptz NOT NULL DEFAULT NOW(),
   write_id uuid
 );
+
+ALTER TABLE tags
+  DROP CONSTRAINT IF EXISTS tags_name_length,
+  ADD CONSTRAINT tags_name_length CHECK (char_length(name) <= 50);
 
 -- ---------------------------------------------------------
 -- lyubo_tags

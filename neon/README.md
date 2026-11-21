@@ -38,6 +38,9 @@ Run the CLI pinned and without analytics, for example
 
 ## Notes
 
+- Run `neon/schema.sql` again after every change to it. It is idempotent: tables are created
+  only once, and the `CHECK` constraints are dropped and added again, so changed limits reach
+  existing tables. Adding a constraint fails if existing rows break it; fix those rows first.
 - Every table needs a primary key and no row-level security, otherwise Realtime rejects the
   subscription.
 - Add every origin the app runs on to `preview.realtime.allowedOrigins` in `neon.ts`, then run

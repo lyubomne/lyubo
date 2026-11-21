@@ -2,6 +2,7 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import api from '$lib/api/client';
+import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
 import { LYUBO_ID, TAG_ID, createLocalDB, readChangeLog, serverLyubo, syncIn } from '$lib/testing';
 import { ChangeLogSynchronizer } from './changeLogSynchronizer';
 
@@ -17,6 +18,13 @@ const respond = (...statuses: (number | undefined)[]) => {
 	}
 };
 const sentBodies = () => request.mock.calls.map(([, , body]) => body);
+const sentChanges = () =>
+	sentBodies().map((body) =>
+		(body as { changes: unknown[] }[]).reduce((sum, tx) => sum + tx.changes.length, 0)
+	);
+// One transaction that inserts `count` rows
+const insertRows = (db: PGliteWithLive, count: number, review = '') =>
+	db.sql`INSERT INTO lyubo (id, review) SELECT gen_random_uuid(), ${review} FROM generate_series(1, ${count})`;
 const change = (overrides: Partial<TChange>): TChange => ({
 	id: 1,
 	table_name: 'lyubo',
@@ -111,6 +119,14 @@ describe('ChangeLogSynchronizer', () => {
 		});
 
 		describe('when the server fails or cannot be reached', () => {
+			beforeEach(() => {
+				vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+			});
+
+			afterEach(() => {
+				vi.useRealTimers();
+			});
+
 			it.each([
 				{ failure: 'a 500 response', status: 500 },
 				{ failure: 'no response after all network retries', status: undefined }
@@ -118,11 +134,80 @@ describe('ChangeLogSynchronizer', () => {
 				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
 				respond(status, 200);
 
-				await synchronizer.process();
+				const processing = synchronizer.process();
+				await vi.runAllTimersAsync();
+				await processing;
 
 				expect(request).toHaveBeenCalledTimes(2);
 				expect(sentBodies()[1]).toEqual(sentBodies()[0]);
 				expect(await readChangeLog(db)).toHaveLength(0);
+			});
+
+			it('waits 1 s before the first retry and twice as long before each next one', async () => {
+				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+				respond(500, 500, 200);
+
+				void synchronizer.process();
+
+				await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1), { interval: 0 });
+				await vi.advanceTimersByTimeAsync(999);
+				expect(request).toHaveBeenCalledTimes(1);
+
+				await vi.advanceTimersByTimeAsync(1);
+				await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(2), { interval: 0 });
+				await vi.advanceTimersByTimeAsync(1_999);
+				expect(request).toHaveBeenCalledTimes(2);
+
+				await vi.advanceTimersByTimeAsync(1);
+				await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(3), { interval: 0 });
+			});
+
+			it('stops waiting and sends nothing more when it is stopped', async () => {
+				await db.sql`INSERT INTO lyubo (id, name) VALUES (${LYUBO_ID}, 'a')`;
+				respond(500);
+				const processing = synchronizer.process();
+				await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1), { interval: 0 });
+
+				await synchronizer.stop();
+				await processing;
+
+				expect(request).toHaveBeenCalledOnce();
+				expect(vi.getTimerCount()).toBe(0);
+			});
+		});
+
+		describe('when the log is larger than one request may carry', () => {
+			it('sends it in parts of whole transactions within the change limit', async () => {
+				await insertRows(db, MAX_SYNC_REQUEST_CHANGES - 100);
+				await insertRows(db, 200);
+				respond(200, 200);
+
+				await synchronizer.process();
+
+				expect(sentChanges()).toEqual([MAX_SYNC_REQUEST_CHANGES - 100, 200]);
+				expect(await readChangeLog(db)).toHaveLength(0);
+			});
+
+			it('sends it in parts within the byte limit', async () => {
+				const review = 'a'.repeat(MAX_SYNC_REQUEST_BYTES / 2);
+				await insertRows(db, 1, review);
+				await insertRows(db, 1, review);
+				respond(200, 200);
+
+				await synchronizer.process();
+
+				expect(sentChanges()).toEqual([1, 1]);
+				expect(await readChangeLog(db)).toHaveLength(0);
+			});
+
+			it('sends a transaction over the limits alone', async () => {
+				await insertRows(db, MAX_SYNC_REQUEST_CHANGES + 1);
+				await insertRows(db, 1);
+				respond(400);
+
+				await synchronizer.process();
+
+				expect(sentChanges()).toEqual([MAX_SYNC_REQUEST_CHANGES + 1]);
 			});
 		});
 	});

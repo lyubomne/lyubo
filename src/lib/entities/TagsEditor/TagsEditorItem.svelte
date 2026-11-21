@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { DataInput, DataRemoveButton } from '$lib/components/data';
 	import type { ITag } from './types';
+	import { validationSchema } from './validationSchema';
 
 	const { tag }: { tag: ITag } = $props();
 </script>
 
 <div class="tags-editor-item">
-	<DataInput value={tag.name} name="name" rowId={tag.id} tableName="tags" />
+	<DataInput value={tag.name} name="name" rowId={tag.id} tableName="tags" {validationSchema} />
 	<DataRemoveButton rowId={tag.id} tableName="tags" />
 </div>
 
