@@ -3,6 +3,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [sveltekit()],
+	// "localhost" resolves to [::1] only in the dev container, but VS Code forwards the port to
+	// 127.0.0.1, so the page in the Windows browser hangs. The URL stays http://localhost:5173
+	server: { host: '127.0.0.1' },
 	test: {
 		projects: [
 			{

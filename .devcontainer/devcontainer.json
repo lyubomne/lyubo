@@ -3,16 +3,25 @@
 {
 	"name": "Node.js & TypeScript",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:5-26-trixie"
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:5-26-trixie",
+
+	// The repo lives in WSL (ext4), opened from VS Code with "Connect to WSL", then "Reopen in Container".
+	// - node_modules: the container's own Linux dependencies, separate from any copy outside it
+	// - ~/.claude: Claude Code's memory, plans and login outlive a rebuild
+	// Docker volumes are visible to this container only
+	"mounts": [
+		"source=lyubo-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+		"source=lyubo-claude,target=/home/node/.claude,type=volume"
+	],
+
+	// New volumes belong to root
+	"postCreateCommand": "sudo chown node:node ${containerWorkspaceFolder}/node_modules /home/node/.claude"
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "yarn install",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
