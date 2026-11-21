@@ -141,7 +141,7 @@
 				gap: var(--space-8);
 				margin: var(--space-2);
 				padding: var(--space-2);
-				border-radius: var(--border-4);
+				border-radius: var(--radius-4);
 				font-size: var(--font-14);
 				cursor: default;
 			}

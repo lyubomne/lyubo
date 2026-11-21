@@ -31,7 +31,7 @@
 
 		:global {
 			svg {
-				fill: var(--color-dark-1);
+				fill: var(--color-dark);
 			}
 		}
 	}

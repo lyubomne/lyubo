@@ -41,7 +41,7 @@
 				transition: transform 0.2s ease;
 				filter: url($lib/components/ui/Filters/shadowFilterBase.svg#shadow);
 				width: var(--size);
-				height: var(---size);
+				height: var(--size);
 			}
 
 			svg:hover {

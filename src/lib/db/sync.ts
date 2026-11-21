@@ -177,9 +177,12 @@ export class ChangeLogSynchronizer {
 	 */
 	async rollback(): Promise<void> {
 		await this.#db.transaction(async (tx) => {
-			await tx.sql`DELETE from changes`;
 			await tx.sql`DELETE from lyubo_local`;
-			// ВОт тут надо тупо дропать вообще все таблицы локальные пока что
+			await tx.sql`DELETE from tags_local`;
+			await tx.sql`DELETE from lyubo_tags_local`;
+			// Clear the change log last: deleting from *_local fires log_delete triggers,
+			// which would otherwise leave new delete entries to be sent to the server
+			await tx.sql`DELETE from changes`;
 		});
 	}
 

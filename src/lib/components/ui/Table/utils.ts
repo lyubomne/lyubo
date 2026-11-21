@@ -13,7 +13,7 @@ export const isActionColumn = <TTableData extends IBaseTableData>(
 ): column is
 	| ITableActionColumn<TTableData, 'expand'>
 	| ITableActionColumn<TTableData, 'remove'> => {
-	return ['actions'].includes(column.name);
+	return ['expand', 'remove'].includes(column.name);
 };
 
 export const isExpandableColumn = <TTableData extends IBaseTableData>(

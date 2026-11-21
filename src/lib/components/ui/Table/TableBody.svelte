@@ -28,7 +28,7 @@
 			})}
 		{/if}
 	{:else}
-		{getNestedValues(column, column.name)}
+		{getNestedValues(dataItem, column.name)}
 	{/if}
 {/snippet}
 

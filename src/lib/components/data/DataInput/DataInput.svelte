@@ -58,26 +58,24 @@
 				);
 			};
 
-			if (e.key === 'Enter') {
-				e.preventDefault();
+			e.preventDefault();
 
-				const focusable = Array.from(
-					document.querySelectorAll<HTMLElement>(
-						'input, button, select, textarea, [tabindex]:not([tabindex="-1"])'
-					)
+			const focusable = Array.from(
+				document.querySelectorAll<HTMLElement>(
+					'input, button, select, textarea, [tabindex]:not([tabindex="-1"])'
 				)
-					.filter((el) => !isDisableable(el) || !el.disabled)
-					.filter((el) => el.offsetParent !== null);
+			)
+				.filter((el) => !isDisableable(el) || !el.disabled)
+				.filter((el) => el.offsetParent !== null);
 
-				const index = inputComponent ? focusable.indexOf(inputComponent) : -1;
+			const index = inputComponent ? focusable.indexOf(inputComponent) : -1;
 
-				if (index > -1 && index + 1 < focusable.length) {
-					focusable[index + 1].focus();
-				}
+			if (index > -1 && index + 1 < focusable.length) {
+				focusable[index + 1].focus();
 			}
 		}
 
-		if (e.key === 'Esc') {
+		if (e.key === 'Escape') {
 			inputComponent?.blur();
 		}
 	};

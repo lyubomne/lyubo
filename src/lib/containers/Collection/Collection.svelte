@@ -3,8 +3,8 @@
 	import { TagsEditor } from '$lib/entities/TagsEditor';
 </script>
 
-<div class="collecton-container">
-	<div class="collecton-actions-panel">
+<div class="collection-container">
+	<div class="collection-actions-panel">
 		<TagsEditor />
 		<AddButton />
 	</div>
@@ -12,13 +12,13 @@
 </div>
 
 <style>
-	.collecton-container {
+	.collection-container {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-8);
 	}
 
-	.collecton-actions-panel {
+	.collection-actions-panel {
 		display: flex;
 		gap: var(--space-8);
 	}
