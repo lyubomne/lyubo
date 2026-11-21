@@ -78,6 +78,7 @@ WHERE
 -- ---------------------------------------------------------
 -- Cleanup triggers
 -- ---------------------------------------------------------
+-- The local write synced back: drop the local row unless it was written again since
 CREATE OR REPLACE FUNCTION delete_lyubo_local_on_synced_change()
   RETURNS TRIGGER
   AS $$
@@ -90,6 +91,18 @@ END;
 $$
 LANGUAGE plpgsql;
 
+-- The row is gone on the server: local edits of it have nothing left to apply to
+CREATE OR REPLACE FUNCTION delete_lyubo_local_on_synced_delete()
+  RETURNS TRIGGER
+  AS $$
+BEGIN
+  DELETE FROM lyubo_local
+  WHERE id = OLD.id;
+  RETURN OLD;
+END;
+$$
+LANGUAGE plpgsql;
+
 CREATE OR REPLACE TRIGGER delete_lyubo_local_on_synced_insert
   AFTER INSERT OR UPDATE ON lyubo_synced
   FOR EACH ROW
@@ -98,7 +111,7 @@ CREATE OR REPLACE TRIGGER delete_lyubo_local_on_synced_insert
 CREATE OR REPLACE TRIGGER delete_lyubo_local_on_synced_delete
   AFTER DELETE ON lyubo_synced
   FOR EACH ROW
-  EXECUTE FUNCTION delete_lyubo_local_on_synced_change();
+  EXECUTE FUNCTION delete_lyubo_local_on_synced_delete();
 
 -- ---------------------------------------------------------
 -- INSTEAD OF INSERT
@@ -107,10 +120,14 @@ CREATE OR REPLACE FUNCTION lyubo_insert_trigger()
   RETURNS TRIGGER
   AS $$
 DECLARE
-  wid uuid := gen_random_uuid();
+  local_row lyubo_local%ROWTYPE;
 BEGIN
   INSERT INTO lyubo_local(id, name, rating, review, favorite, watched_on, created_at, changed_columns, write_id)
-    VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.rating, 0), COALESCE(NEW.review, ''), COALESCE(NEW.favorite, FALSE), COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')), COALESCE(NEW.created_at, NOW()), ARRAY['name', 'rating', 'review', 'favorite', 'watched_on', 'created_at'], wid);
+    VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.rating, 0), COALESCE(NEW.review, ''), COALESCE(NEW.favorite, FALSE), COALESCE(NEW.watched_on, TO_CHAR(NOW(), 'YYYY-MM-DD')), COALESCE(NEW.created_at, NOW()), ARRAY['name', 'rating', 'review', 'favorite', 'watched_on', 'created_at'], gen_random_uuid())
+  RETURNING
+    * INTO local_row;
+  PERFORM
+    log_change('lyubo', 'insert', jsonb_build_object('id', local_row.id), to_jsonb(local_row) - ARRAY['changed_columns', 'is_deleted', 'write_id'], local_row.write_id);
   RETURN NEW;
 END;
 $$
@@ -124,20 +141,18 @@ CREATE OR REPLACE FUNCTION lyubo_update_trigger()
   AS $$
 DECLARE
   synced lyubo_synced%ROWTYPE;
-  local lyubo_local%ROWTYPE;
   cols text[] := '{}';
   wid uuid := gen_random_uuid();
+  -- Only the columns this write changes go to the server
+  edited jsonb := changed_values(to_jsonb(NEW), to_jsonb(OLD)) - 'id';
 BEGIN
+  IF edited = '{}'::jsonb THEN
+    RETURN NEW;
+  END IF;
   SELECT
     * INTO synced
   FROM
     lyubo_synced
-  WHERE
-    id = NEW.id;
-  SELECT
-    * INTO local
-  FROM
-    lyubo_local
   WHERE
     id = NEW.id;
   IF NEW.name IS DISTINCT FROM synced.name THEN
@@ -170,6 +185,8 @@ BEGIN
       created_at = EXCLUDED.created_at,
       changed_columns = EXCLUDED.changed_columns,
       write_id = wid;
+  PERFORM
+    log_change('lyubo', 'update', jsonb_build_object('id', NEW.id), edited, wid);
   RETURN NEW;
 END;
 $$
@@ -181,13 +198,30 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION lyubo_delete_trigger()
   RETURNS TRIGGER
   AS $$
+DECLARE
+  wid uuid := gen_random_uuid();
 BEGIN
+  IF EXISTS (
+    SELECT
+      1
+    FROM
+      lyubo_synced
+    WHERE
+      id = OLD.id) THEN
+  -- Hide the synced row until the delete syncs back
   INSERT INTO lyubo_local(id, is_deleted, write_id)
-    VALUES(OLD.id, TRUE, gen_random_uuid())
-  ON CONFLICT(id)
+    VALUES (OLD.id, TRUE, wid)
+  ON CONFLICT (id)
     DO UPDATE SET
       is_deleted = TRUE,
-      write_id = gen_random_uuid();
+      write_id = wid;
+ELSE
+  -- Never synced: no tombstone needed, it would never be cleaned up
+  DELETE FROM lyubo_local
+  WHERE id = OLD.id;
+END IF;
+  PERFORM
+    log_change('lyubo', 'delete', jsonb_build_object('id', OLD.id), NULL, wid);
   RETURN OLD;
 END;
 $$
@@ -212,20 +246,51 @@ CREATE OR REPLACE TRIGGER lyubo_delete
   EXECUTE FUNCTION lyubo_delete_trigger();
 
 -- ---------------------------------------------------------
--- Change logging
+-- Realtime sync (RealtimeSync passes jsonb arrays of rows / keys)
 -- ---------------------------------------------------------
-CREATE OR REPLACE TRIGGER lyubo_log_insert
-  AFTER INSERT ON lyubo_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_insert('id');
+CREATE OR REPLACE FUNCTION lyubo_synced_upsert(rows jsonb)
+  RETURNS void
+  AS $$
+  INSERT INTO lyubo_synced
+  SELECT
+    *
+  FROM
+    jsonb_populate_recordset(NULL::lyubo_synced, rows)
+  ON CONFLICT (id)
+    DO UPDATE SET
+      name = EXCLUDED.name,
+      rating = EXCLUDED.rating,
+      review = EXCLUDED.review,
+      favorite = EXCLUDED.favorite,
+      watched_on = EXCLUDED.watched_on,
+      created_at = EXCLUDED.created_at,
+      write_id = EXCLUDED.write_id
+    WHERE (lyubo_synced.*) IS DISTINCT FROM (EXCLUDED.*);
+$$
+LANGUAGE sql;
 
-CREATE OR REPLACE TRIGGER lyubo_log_update
-  AFTER UPDATE ON lyubo_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_update();
+CREATE OR REPLACE FUNCTION lyubo_synced_remove(keys jsonb)
+  RETURNS void
+  AS $$
+  DELETE FROM lyubo_synced
+  WHERE id IN (
+      SELECT
+        id
+      FROM
+        jsonb_populate_recordset(NULL::lyubo_synced, keys));
+$$
+LANGUAGE sql;
 
-CREATE OR REPLACE TRIGGER lyubo_log_delete
-  AFTER DELETE ON lyubo_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_delete('id');
+-- Deletes every row missing from a complete result
+CREATE OR REPLACE FUNCTION lyubo_synced_retain(keys jsonb)
+  RETURNS void
+  AS $$
+  DELETE FROM lyubo_synced
+  WHERE id NOT IN (
+      SELECT
+        id
+      FROM
+        jsonb_populate_recordset(NULL::lyubo_synced, keys));
+$$
+LANGUAGE sql;
 

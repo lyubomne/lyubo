@@ -1,3 +1,4 @@
+import { rawSql } from '@neon/realtime/server';
 import type { TableDescriptor } from './types';
 
 export const tagsTable: TableDescriptor = {
@@ -8,5 +9,6 @@ export const tagsTable: TableDescriptor = {
 		insert: true,
 		update: true,
 		delete: true
-	}
+	},
+	liveQuery: rawSql(`SELECT id, name, created_at, write_id FROM tags`)
 };

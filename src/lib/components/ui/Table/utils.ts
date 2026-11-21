@@ -11,8 +11,7 @@ import type {
 export const isActionColumn = <TTableData extends IBaseTableData>(
 	column: ITableColumns<TTableData>
 ): column is
-	| ITableActionColumn<TTableData, 'expand'>
-	| ITableActionColumn<TTableData, 'remove'> => {
+	ITableActionColumn<TTableData, 'expand'> | ITableActionColumn<TTableData, 'remove'> => {
 	return ['expand', 'remove'].includes(column.name);
 };
 

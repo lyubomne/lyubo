@@ -1,4 +1,3 @@
-import { type Operation } from '@electric-sql/client';
 import { type PGliteWithLive } from '@electric-sql/pglite/live';
 
 import api from '$lib/api/client.js';
@@ -6,7 +5,7 @@ import api from '$lib/api/client.js';
 type Change = {
 	id: number;
 	table_name: string;
-	operation: Operation;
+	operation: 'insert' | 'update' | 'delete';
 	primary_key: Record<string, unknown>;
 	value?: Record<string, unknown>;
 	write_id: string;
@@ -114,10 +113,16 @@ export class ChangeLogSynchronizer {
 	 * Send the current batch of changes to the server, grouped by transaction.
 	 */
 	async send(changes: Change[]): Promise<SendResult> {
-		const path = '/api/electric/changes';
+		const path = '/api/sync/changes';
 
 		const groups = Object.groupBy(changes, (x) => x.transaction_id);
-		const sorted = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+		// Transaction ids are xid8 numbers: compare them as numbers, '10' sorts before '9' as text
+		const sorted = Object.entries(groups).sort((a, b) => {
+			const left = BigInt(a[0]);
+			const right = BigInt(b[0]);
+
+			return left < right ? -1 : left > right ? 1 : 0;
+		});
 		const transactions = sorted.map(([transaction_id, changes]) => {
 			// TODO: React more obviously? Throw error?
 			if (!changes) {
@@ -180,8 +185,6 @@ export class ChangeLogSynchronizer {
 			await tx.sql`DELETE from lyubo_local`;
 			await tx.sql`DELETE from tags_local`;
 			await tx.sql`DELETE from lyubo_tags_local`;
-			// Clear the change log last: deleting from *_local fires log_delete triggers,
-			// which would otherwise leave new delete entries to be sent to the server
 			await tx.sql`DELETE from changes`;
 		});
 	}

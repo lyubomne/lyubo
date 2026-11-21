@@ -1,0 +1,3 @@
+# pnpm 11+ reads build-script approvals from here (package.json "pnpm.onlyBuiltDependencies" is ignored)
+allowBuilds:
+  esbuild: true

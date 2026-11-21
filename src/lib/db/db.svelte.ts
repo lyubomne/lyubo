@@ -1,6 +1,5 @@
 import { PGlite } from '@electric-sql/pglite';
 import { type PGliteWithLive, live } from '@electric-sql/pglite/live';
-import { electricSync } from '@electric-sql/pglite-sync';
 
 import lyuboSchema from './schemas/lyubo.sql?raw';
 import lyuboWithTagsSchema from './schemas/lyubo_with_tags.sql?raw';
@@ -10,8 +9,11 @@ import changesSchema from './schemas/changes.sql?raw';
 import triggersSchema from './schemas/triggers.sql?raw';
 import { getContext, setContext } from 'svelte';
 import type { TNillable } from '$lib/common/types';
+import { RealtimeSync, SYNCED_TABLES } from './sync';
 
-const DATA_DIR = 'idb://lyubo';
+// PGlite 0.5 runs Postgres 18 and cannot open the Postgres 17 data of 'idb://lyubo'.
+// The new database fills itself from Neon Realtime; unsent local changes in the old one are lost
+const DATA_DIR = 'idb://lyubo-pg18';
 
 class DBStore {
 	db: TNillable<PGliteWithLive> = $state();
@@ -19,7 +21,6 @@ class DBStore {
 	async loadPGlite() {
 		const pglite: PGliteWithLive = await PGlite.create(DATA_DIR, {
 			extensions: {
-				electric: electricSync(),
 				live
 			}
 		});
@@ -31,35 +32,7 @@ class DBStore {
 		await pglite.exec(lyuboTagsSchema);
 		await pglite.exec(lyuboWithTagsSchema);
 
-		await pglite.electric.syncShapesToTables({
-			shapes: {
-				lyubo: {
-					shape: {
-						url: 'http://localhost:5173/api/electric/shape',
-						params: { table: 'lyubo' }
-					},
-					table: 'lyubo_synced',
-					primaryKey: ['id']
-				},
-				tags: {
-					shape: {
-						url: 'http://localhost:5173/api/electric/shape',
-						params: { table: 'tags' }
-					},
-					table: 'tags_synced',
-					primaryKey: ['id']
-				},
-				lyubo_tags: {
-					shape: {
-						url: 'http://localhost:5173/api/electric/shape',
-						params: { table: 'lyubo_tags' }
-					},
-					table: 'lyubo_tags_synced',
-					primaryKey: ['lyubo_id', 'tag_id']
-				}
-			},
-			key: 'colections-sync'
-		});
+		void new RealtimeSync(pglite, SYNCED_TABLES).start();
 
 		this.db = pglite;
 	}

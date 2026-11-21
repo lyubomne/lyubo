@@ -90,7 +90,7 @@ CREATE OR REPLACE FUNCTION tags_insert_trigger()
   RETURNS TRIGGER
   AS $$
 DECLARE
-  local_write_id uuid := gen_random_uuid();
+  local_row tags_local%ROWTYPE;
 BEGIN
   IF EXISTS (
     SELECT
@@ -102,7 +102,11 @@ BEGIN
   RAISE EXCEPTION 'Cannot insert: id already exists in synced table';
 END IF;
 INSERT INTO tags_local(id, name, created_at, changed_columns, write_id)
-  VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), ARRAY['name', 'created_at'], local_write_id);
+  VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), ARRAY['name', 'created_at'], gen_random_uuid())
+RETURNING
+  * INTO local_row;
+  PERFORM
+    log_change('tags', 'insert', jsonb_build_object('id', local_row.id), to_jsonb(local_row) - ARRAY['changed_columns', 'is_deleted', 'write_id'], local_row.write_id);
   RETURN NEW;
 END;
 $$
@@ -116,49 +120,37 @@ CREATE OR REPLACE FUNCTION tags_update_trigger()
   AS $$
 DECLARE
   synced tags_synced%ROWTYPE;
-  local tags_local%ROWTYPE;
   changed_cols text[] := '{}';
   local_write_id uuid := gen_random_uuid();
+  -- Only the columns this write changes go to the server
+  edited jsonb := changed_values(to_jsonb(NEW), to_jsonb(OLD)) - 'id';
 BEGIN
+  IF edited = '{}'::jsonb THEN
+    RETURN NEW;
+  END IF;
   SELECT
     * INTO synced
   FROM
     tags_synced
   WHERE
     id = NEW.id;
-  SELECT
-    * INTO local
-  FROM
-    tags_local
-  WHERE
-    id = NEW.id;
-  IF NOT FOUND THEN
-    IF NEW.name IS DISTINCT FROM synced.name THEN
-      changed_cols := array_append(changed_cols, 'name');
-    END IF;
-    IF NEW.created_at IS DISTINCT FROM synced.created_at THEN
-      changed_cols := array_append(changed_cols, 'created_at');
-    END IF;
-    INSERT INTO tags_local(id, name, created_at, changed_columns, write_id)
-      VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), changed_cols, local_write_id);
-  ELSE
-    UPDATE
-      tags_local
-    SET
-      name = CASE WHEN NEW.name IS DISTINCT FROM synced.name THEN
-        NEW.name
-      ELSE
-        local.name
-      END,
-      created_at = CASE WHEN NEW.created_at IS DISTINCT FROM synced.created_at THEN
-        NEW.created_at
-      ELSE
-        local.created_at
-      END,
-      write_id = local_write_id
-    WHERE
-      id = NEW.id;
+  -- Changed columns are always relative to the synced row, so every edit recomputes them
+  IF NEW.name IS DISTINCT FROM synced.name THEN
+    changed_cols := array_append(changed_cols, 'name');
   END IF;
+  IF NEW.created_at IS DISTINCT FROM synced.created_at THEN
+    changed_cols := array_append(changed_cols, 'created_at');
+  END IF;
+  INSERT INTO tags_local(id, name, created_at, changed_columns, write_id)
+    VALUES (NEW.id, COALESCE(NEW.name, ''), COALESCE(NEW.created_at, NOW()), changed_cols, local_write_id)
+  ON CONFLICT (id)
+    DO UPDATE SET
+      name = EXCLUDED.name,
+      created_at = EXCLUDED.created_at,
+      changed_columns = EXCLUDED.changed_columns,
+      write_id = local_write_id;
+  PERFORM
+    log_change('tags', 'update', jsonb_build_object('id', NEW.id), edited, local_write_id);
   RETURN NEW;
 END;
 $$
@@ -177,20 +169,23 @@ BEGIN
     SELECT
       1
     FROM
-      tags_local
+      tags_synced
     WHERE
       id = OLD.id) THEN
-  UPDATE
-    tags_local
-  SET
-    is_deleted = TRUE,
-    write_id = local_write_id
-  WHERE
-    id = OLD.id;
-ELSE
+  -- Hide the synced row until the delete syncs back
   INSERT INTO tags_local(id, is_deleted, write_id)
-    VALUES (OLD.id, TRUE, local_write_id);
+    VALUES (OLD.id, TRUE, local_write_id)
+  ON CONFLICT (id)
+    DO UPDATE SET
+      is_deleted = TRUE,
+      write_id = local_write_id;
+ELSE
+  -- Never synced: no tombstone needed, it would never be cleaned up
+  DELETE FROM tags_local
+  WHERE id = OLD.id;
 END IF;
+  PERFORM
+    log_change('tags', 'delete', jsonb_build_object('id', OLD.id), NULL, local_write_id);
   RETURN OLD;
 END;
 $$
@@ -215,20 +210,46 @@ CREATE OR REPLACE TRIGGER tags_delete
   EXECUTE FUNCTION tags_delete_trigger();
 
 -- ---------------------------------------------------------
--- Attach generic change logging
+-- Realtime sync (RealtimeSync passes jsonb arrays of rows / keys)
 -- ---------------------------------------------------------
-CREATE OR REPLACE TRIGGER tags_log_insert
-  AFTER INSERT ON tags_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_insert('id');
+CREATE OR REPLACE FUNCTION tags_synced_upsert(rows jsonb)
+  RETURNS void
+  AS $$
+  INSERT INTO tags_synced
+  SELECT
+    *
+  FROM
+    jsonb_populate_recordset(NULL::tags_synced, rows)
+  ON CONFLICT (id)
+    DO UPDATE SET
+      name = EXCLUDED.name,
+      created_at = EXCLUDED.created_at,
+      write_id = EXCLUDED.write_id
+    WHERE (tags_synced.*) IS DISTINCT FROM (EXCLUDED.*);
+$$
+LANGUAGE sql;
 
-CREATE OR REPLACE TRIGGER tags_log_update
-  AFTER UPDATE ON tags_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_update();
+CREATE OR REPLACE FUNCTION tags_synced_remove(keys jsonb)
+  RETURNS void
+  AS $$
+  DELETE FROM tags_synced
+  WHERE id IN (
+      SELECT
+        id
+      FROM
+        jsonb_populate_recordset(NULL::tags_synced, keys));
+$$
+LANGUAGE sql;
 
-CREATE OR REPLACE TRIGGER tags_log_delete
-  AFTER DELETE ON tags_local
-  FOR EACH ROW
-  EXECUTE FUNCTION log_delete('id');
-
+-- Deletes every row missing from a complete result
+CREATE OR REPLACE FUNCTION tags_synced_retain(keys jsonb)
+  RETURNS void
+  AS $$
+  DELETE FROM tags_synced
+  WHERE id NOT IN (
+      SELECT
+        id
+      FROM
+        jsonb_populate_recordset(NULL::tags_synced, keys));
+$$
+LANGUAGE sql;

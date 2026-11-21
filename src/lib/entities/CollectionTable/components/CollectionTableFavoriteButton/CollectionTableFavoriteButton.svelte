@@ -9,7 +9,8 @@
 	const dbStore = getDB();
 
 	let isCommitting = $state(false);
-	let localIsFavorite = $state(dbIsFavorite);
+	// Writable derived: follows synced changes of the prop, and can be toggled locally
+	let localIsFavorite = $derived(dbIsFavorite);
 	let committedIsFavorite = $derived.by(() =>
 		untrack(() => isCommitting) ? localIsFavorite : dbIsFavorite
 	);

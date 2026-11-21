@@ -3,8 +3,11 @@ import { tagsTable } from './tags';
 import { lyuboTagsTable } from './lyuboTags';
 import type { TableDescriptor } from './types';
 
+// Keyed by the table name the client logs in `changes` (the merged view = server table name)
 export const TABLES: Record<string, TableDescriptor> = {
-	lyubo_local: lyuboTable,
-	tags_local: tagsTable,
-	lyubo_tags_local: lyuboTagsTable
+	lyubo: lyuboTable,
+	tags: tagsTable,
+	lyubo_tags: lyuboTagsTable
 };
+
+export * from './types';

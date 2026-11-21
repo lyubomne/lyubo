@@ -3,8 +3,8 @@
 A production‑grade single‑page application built on **SvelteKit**. It provides a
 performant interface for managing collections, tags and related entities. The
 codebase demonstrates a component‑centric architecture, local persistence
-(PGlite via Electric), and extensible synchronization logic delivered through
-built‑in Electric endpoints.
+(PGlite), and synchronization with Postgres on Neon: live queries through Neon
+Realtime for reads, and a local change log sent to the app's own API for writes.
 
 ---
 
@@ -16,8 +16,8 @@ built‑in Electric endpoints.
 - Reusable UI components (inputs, buttons, date picker, icons) implemented in
   Svelte.
 - Responsive design.
-- Offline‑first local storage using PGlite; incremental sync through Electric API
-  routes.
+- Offline‑first local storage using PGlite; live sync from Neon Realtime and a
+  write-back API route for local changes.
 - Validation schemas defined with Zod.
 
 ---
@@ -28,7 +28,8 @@ built‑in Electric endpoints.
 - **Language:** TypeScript
 - **Bundler:** Vite
 - **Local database:** PGlite (wrapped by custom `liveDB` module)
-- **Realtime/Sync:** Electric endpoints and client
+- **Server database:** Postgres on Neon (Lakebase)
+- **Realtime/Sync:** Neon Realtime live queries, SvelteKit API routes
 - **Testing:** Vitest, @testing-library/svelte
 
 ---

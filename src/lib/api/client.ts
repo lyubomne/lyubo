@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5173';
+// Same origin by default, so the app works on any host and port
+const API_URL = import.meta.env.VITE_SERVER_URL || '';
 
 type RequestOptions = {
 	method: string;
