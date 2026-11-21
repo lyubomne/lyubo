@@ -71,7 +71,8 @@ export const throttle = <T extends (...args: any[]) => void>(
 		const now = Date.now();
 
 		const invoke = () => {
-			lastCall = now;
+			// The time it runs, not the time it was scheduled: a trailing call runs later
+			lastCall = Date.now();
 			timeout = null;
 
 			fn(...(lastArgs || args));

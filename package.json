@@ -17,6 +17,7 @@
 		"validate": "pnpm run format && pnpm run lint && pnpm run check"
 	},
 	"devDependencies": {
+		"@electric-sql/pglite-socket": "0.2.20",
 		"@eslint/compat": "^1.4.1",
 		"@eslint/js": "^9.39.5",
 		"@neon/config": "^1.14.5",

@@ -1,12 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { type PGliteWithLive, live } from '@electric-sql/pglite/live';
 
-import lyuboSchema from './schemas/lyubo.sql?raw';
-import lyuboWithTagsSchema from './schemas/lyubo_with_tags.sql?raw';
-import lyuboTagsSchema from './schemas/lyubo_tags.sql?raw';
-import tagsSchema from './schemas/tags.sql?raw';
-import changesSchema from './schemas/changes.sql?raw';
-import triggersSchema from './schemas/triggers.sql?raw';
+import { LOCAL_SCHEMAS } from './schemas';
 import { getContext, setContext } from 'svelte';
 import type { TNillable } from '$lib/common/types';
 import { RealtimeSync, SYNCED_TABLES } from './sync';
@@ -25,12 +20,9 @@ class DBStore {
 			}
 		});
 
-		await pglite.exec(changesSchema);
-		await pglite.exec(triggersSchema);
-		await pglite.exec(lyuboSchema);
-		await pglite.exec(tagsSchema);
-		await pglite.exec(lyuboTagsSchema);
-		await pglite.exec(lyuboWithTagsSchema);
+		for (const schema of LOCAL_SCHEMAS) {
+			await pglite.exec(schema);
+		}
 
 		void new RealtimeSync(pglite, SYNCED_TABLES).start();
 

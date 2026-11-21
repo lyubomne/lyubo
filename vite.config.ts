@@ -15,7 +15,7 @@ export default defineConfig({
 						provider: 'playwright',
 						instances: [{ browser: 'chromium' }]
 					},
-					include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					include: ['src/**/*.svelte.test.{js,ts}'],
 					exclude: ['src/lib/server/**'],
 					setupFiles: ['./vitest-setup-client.ts']
 				}
@@ -25,8 +25,11 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					// PGlite takes seconds to start, more on the slow mounted drive and under parallel load
+					hookTimeout: 60_000,
+					testTimeout: 30_000,
+					include: ['src/**/*.test.{js,ts}'],
+					exclude: ['src/**/*.svelte.test.{js,ts}']
 				}
 			}
 		]

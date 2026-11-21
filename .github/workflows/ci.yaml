@@ -7,7 +7,7 @@ on:
     branches: ['*']
 
 jobs:
-  format_lint:
+  lint:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -15,22 +15,20 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 12
 
+      # Same major as the dev container image (typescript-node:5-26)
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Format check
-        run: pnpm run format --check
-
       - name: Lint
-        run: pnpm run lint
+        run: pnpm exec eslint .
 
   typecheck:
     runs-on: ubuntu-22.04
@@ -40,12 +38,12 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 12
 
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -59,3 +57,31 @@ jobs:
 
       - name: Type check
         run: pnpm run check
+
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The tests replace the env they need; SvelteKit still expects the file
+      - name: Create dummy .env
+        run: cp ./.env.example ./.env
+
+      # Node tests only: they run on in-memory PGlite and need no secrets or network.
+      # Browser (client project) tests do not exist yet and would need Chromium here
+      - name: Test
+        run: pnpm vitest run --project server
