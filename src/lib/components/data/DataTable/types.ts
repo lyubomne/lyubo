@@ -1,5 +1,5 @@
 import type { Snippet } from 'svelte';
-import type { IBaseTableData, ITableColumns } from '$lib/components/ui';
+import type { IBaseTableData, ITableColumns, TableFocus } from '$lib/components/ui';
 
 export interface IDataTableProps<TTableData extends IBaseTableData> {
 	columns: ITableColumns<TTableData>[];
@@ -9,4 +9,5 @@ export interface IDataTableProps<TTableData extends IBaseTableData> {
 	filter?: Partial<TTableData>;
 	// Shown under the header while no row matches
 	empty?: Snippet;
+	focus?: TableFocus;
 }

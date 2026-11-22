@@ -5,8 +5,11 @@
 	import TableHead from './TableHead.svelte';
 	import type { IBaseTableData, ITableProps } from './types';
 	import { throttle } from '$lib/common/utils';
+	import { TableFocus } from './focus.svelte';
 
-	const { columns, data, empty }: ITableProps<TTableData> = $props();
+	const { columns, data, empty, focus }: ITableProps<TTableData> = $props();
+
+	const ownFocus = new TableFocus();
 
 	// Own width, not the window's: a panel is narrower than the window
 	let width = $state(0);
@@ -15,7 +18,12 @@
 
 	const { mainColumns, expandableRowsColumns } = $derived(prepareColumns(columns, width));
 
-	setTableContext(() => ({ columns: mainColumns, data, expandableRowsColumns }));
+	setTableContext(() => ({
+		columns: mainColumns,
+		data,
+		expandableRowsColumns,
+		focus: focus ?? ownFocus
+	}));
 </script>
 
 <div class="table" bind:clientWidth={null, setWidth}>

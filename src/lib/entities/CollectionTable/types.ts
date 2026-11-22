@@ -1,3 +1,5 @@
+import type { TableFocus } from '$lib/components/ui';
+
 export interface ICollectionTable {
 	id: string;
 	collection_id: string;
@@ -13,4 +15,5 @@ export interface ICollectionTable {
 
 export interface ICollectionTableProps {
 	collectionId: string;
+	focus?: TableFocus;
 }

@@ -128,14 +128,23 @@ body {
 }
 
 input,
+textarea,
 button {
 	appearance: none;
 	border: none;
 	background: none;
 	font: inherit;
 	color: inherit;
-	cursor: pointer;
 	padding: 0;
+}
+
+button {
+	cursor: pointer;
+}
+
+input,
+textarea {
+	cursor: text;
 }
 
 /* Read by screen readers, not shown */

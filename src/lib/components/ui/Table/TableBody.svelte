@@ -35,15 +35,13 @@
 <tbody>
 	{#each tableContext.data as dataItem, index (dataItem.id)}
 		<!-- TODO: Higlight the row while editing -->
-		<!-- `data-row-id` / `data-column` let callers find a cell, e.g. to focus a new row -->
 		<tr
 			onmouseenter={() => (hoveredGroup = index)}
 			onmouseleave={() => (hoveredGroup = null)}
 			class={[hoveredGroup === index && 'hovered-group']}
-			data-row-id={dataItem.id}
 		>
 			{#each tableContext.columns as column (column.name)}
-				<td style={styleObjectToString(column.style)} data-column={column.name}>
+				<td style={styleObjectToString(column.style)}>
 					{@render TableCell(column, dataItem)}
 				</td>
 			{/each}
@@ -61,7 +59,6 @@
 							<td
 								colspan={expandableColumn.currentExpandableColumn.colSpan || 1}
 								style={styleObjectToString(expandableColumn.style)}
-								data-column={expandableColumn.name}
 							>
 								{@render TableCell(expandableColumn, dataItem)}
 							</td>
@@ -76,6 +73,8 @@
 <style>
 	td {
 		text-align: left;
+		/* A cell taller than one line (a review preview) keeps the first line in line with the rest */
+		vertical-align: top;
 		padding: var(--space-8);
 	}
 
@@ -156,11 +155,13 @@
 	}
 
 	.hovered-group :global {
-		input {
+		input,
+		textarea {
 			box-shadow: inset 2px 2px 2px 0px var(--color-shadow-1);
 		}
 
-		input:not(:focus-visible) {
+		input:not(:focus-visible),
+		textarea:not(:focus-visible) {
 			outline: var(--border-2) solid var(--color-white);
 		}
 	}

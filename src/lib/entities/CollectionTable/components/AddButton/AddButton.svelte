@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { getDB } from '$lib/db';
 	import { Button, PlusIcon } from '$lib/components/ui';
-	import { addRecord } from '../../utils';
+	// Not the barrel: it exports this component, a cycle at runtime
+	import { addRecord } from '$lib/entities/CollectionTable/utils';
 	import type { IAddButtonProps } from './types';
 
-	const { collectionId }: IAddButtonProps = $props();
+	const { collectionId, focus }: IAddButtonProps = $props();
 
 	const dbStore = getDB();
 </script>
@@ -15,5 +16,5 @@
 	aria-label="Add a record"
 	title="Add a record (N)"
 	aria-keyshortcuts="N"
-	onclick={() => void addRecord({ db: dbStore.db, collectionId })}
+	onclick={() => void addRecord({ db: dbStore.db, collectionId, focus })}
 />

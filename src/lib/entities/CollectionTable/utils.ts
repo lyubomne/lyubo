@@ -2,7 +2,7 @@ import { getLocalTimeZone, today } from '@internationalized/date';
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { v4 as uuidv4 } from 'uuid';
 import type { TNillable } from '$lib/common/types';
-import { waitForElement } from '$lib/common/dom';
+import type { TableFocus } from '$lib/components/ui';
 
 export const insertRecord = async ({
 	db,
@@ -26,22 +26,17 @@ export const insertRecord = async ({
 	return id;
 };
 
-export const focusRecordName = async (recordId: string): Promise<void> => {
-	const input = await waitForElement<HTMLInputElement>(
-		document,
-		`tr[data-row-id="${CSS.escape(recordId)}"] td[data-column="name"] input`
-	);
-
-	input?.focus();
-};
-
-export const addRecord = async (params: {
+export const addRecord = async ({
+	focus,
+	...params
+}: {
 	db: TNillable<PGliteWithLive>;
 	collectionId: string;
+	focus: TableFocus;
 }): Promise<void> => {
 	const id = await insertRecord(params);
 
 	if (id) {
-		await focusRecordName(id);
+		focus.request(id, 'name');
 	}
 };

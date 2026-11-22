@@ -1,6 +1,7 @@
 import type { Breakpoint } from '$lib/common/breakpoints';
 import type { TNestedValue } from '$lib/common/types';
 import type { Snippet } from 'svelte';
+import type { TableFocus } from './focus.svelte';
 
 type IActionColumns = 'expand' | 'remove';
 
@@ -55,6 +56,8 @@ export interface ITableProps<TTableData extends IBaseTableData> {
 	data: TTableData[];
 	// Shown in one row under the header while there is no data
 	empty?: Snippet;
+	// Lets the owner focus a field of a row, also one that is not rendered yet
+	focus?: TableFocus;
 }
 
 export type ITableExpandableRowColumn<TTableData extends IBaseTableData> =
@@ -63,7 +66,10 @@ export type ITableExpandableRowColumn<TTableData extends IBaseTableData> =
 export type ITableExpandableRowColumns<TTableData extends IBaseTableData> =
 	(ITableExpandableRowColumn<TTableData> | null)[];
 
-export type ITablePropsWithExpandable<TTableData extends IBaseTableData> =
-	ITableProps<TTableData> & {
-		expandableRowsColumns: ITableExpandableRowColumns<TTableData>[];
-	};
+export type ITablePropsWithExpandable<TTableData extends IBaseTableData> = Omit<
+	ITableProps<TTableData>,
+	'focus'
+> & {
+	expandableRowsColumns: ITableExpandableRowColumns<TTableData>[];
+	focus: TableFocus;
+};

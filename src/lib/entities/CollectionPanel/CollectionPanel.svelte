@@ -2,6 +2,7 @@
 	import { isTextField } from '$lib/common/dom';
 	import { ColumnLimits } from '$lib/common/limits';
 	import { DataInput } from '$lib/components/data';
+	import { TableFocus } from '$lib/components/ui';
 	import { getDB } from '$lib/db';
 	import { AddButton, CollectionTable, addRecord } from '$lib/entities/CollectionTable';
 	import { TagsEditor } from '$lib/entities/TagsEditor';
@@ -13,6 +14,8 @@
 	const { collection, canMoveLeft, canMoveRight, onMove }: ICollectionPanelProps = $props();
 
 	const dbStore = getDB();
+	// Shared by the Add key in the header and the table below it
+	const tableFocus = new TableFocus();
 
 	let panelElement = $state<HTMLElement | null>(null);
 
@@ -43,7 +46,7 @@
 		}
 
 		e.preventDefault();
-		void addRecord({ db: dbStore.db, collectionId: collection.id });
+		void addRecord({ db: dbStore.db, collectionId: collection.id, focus: tableFocus });
 	};
 </script>
 
@@ -75,11 +78,11 @@
 		<TagsEditor collectionId={collection.id} />
 		<CollectionPanelMenu {collection} {canMoveLeft} {canMoveRight} {onMove} onRename={rename} />
 		<div class="collection-panel-add">
-			<AddButton collectionId={collection.id} />
+			<AddButton collectionId={collection.id} focus={tableFocus} />
 		</div>
 	</header>
 	<div class="collection-panel-table">
-		<CollectionTable collectionId={collection.id} />
+		<CollectionTable collectionId={collection.id} focus={tableFocus} />
 	</div>
 </section>
 

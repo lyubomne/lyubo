@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { ZodError } from 'zod';
 	import type { IDataInputSnippetProps } from './types';
-	import { Input } from '$lib/components/ui';
+	import { Input, getTableFocus } from '$lib/components/ui';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 	import { getDB, getUniqueViolationMessage, updateFieldById } from '$lib/db';
+	import { focusNextField } from '$lib/common/dom';
 
 	const {
 		tableName,
@@ -16,6 +17,7 @@
 	}: Omit<HTMLInputAttributes, 'value'> & IDataInputSnippetProps = $props();
 
 	const dbStore = getDB();
+	const tableFocus = getTableFocus();
 
 	let localValue = $derived(String(value ?? ''));
 	let error = $state('');
@@ -56,33 +58,10 @@
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') {
 			commit();
-
-			// TODO: Move to utility
-			const isDisableable = (
-				el: Element
-			): el is HTMLInputElement | HTMLButtonElement | HTMLSelectElement | HTMLTextAreaElement => {
-				return (
-					el instanceof HTMLInputElement ||
-					el instanceof HTMLButtonElement ||
-					el instanceof HTMLSelectElement ||
-					el instanceof HTMLTextAreaElement
-				);
-			};
-
 			e.preventDefault();
 
-			const focusable = Array.from(
-				document.querySelectorAll<HTMLElement>(
-					'input, button, select, textarea, [tabindex]:not([tabindex="-1"])'
-				)
-			)
-				.filter((el) => !isDisableable(el) || !el.disabled)
-				.filter((el) => el.offsetParent !== null);
-
-			const index = inputComponent ? focusable.indexOf(inputComponent) : -1;
-
-			if (index > -1 && index + 1 < focusable.length) {
-				focusable[index + 1].focus();
+			if (inputComponent) {
+				focusNextField(inputComponent);
 			}
 		}
 
@@ -97,6 +76,9 @@
 	<Input
 		bind:value={localValue}
 		bind:ref={inputComponent}
+		{@attach (input) => {
+			if (tableFocus?.take(rowId, name)) input.focus();
+		}}
 		aria-invalid={error ? 'true' : 'false'}
 		oninput={validateValue}
 		onblur={commit}

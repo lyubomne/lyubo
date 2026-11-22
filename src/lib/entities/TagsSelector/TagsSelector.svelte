@@ -6,7 +6,6 @@
 	import { assignRelation, getDB, LiveDB, unassignRelation } from '$lib/db';
 	import TableTag from './Tag.svelte';
 	import { DotSmallIcon, DownIcon, IconButton } from '$lib/components/ui';
-	import TagInput from './TagInput.svelte';
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/common/types';
 
@@ -79,7 +78,6 @@
 				<div class="tags-selector-content">
 					<Select.Content sideOffset={10}>
 						<Select.Viewport>
-							<TagInput {collectionId} />
 							{#each items as item, i (i + item.value)}
 								<Select.Item
 									label={item.label}

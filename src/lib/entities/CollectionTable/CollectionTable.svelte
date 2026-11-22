@@ -2,27 +2,31 @@
 	import type { ICollectionTable, ICollectionTableProps } from './types';
 	import { type ITableColumns, TableExpandButtonSnippet } from '$lib/components/ui';
 	import { validationSchema } from './validationSchema';
+	import { ColumnLimits } from '$lib/common/limits';
 	import { createTagsSelectorRenderer } from '$lib/entities/TagsSelector';
 	import {
 		DataTable,
 		createDataInputRenderer,
-		createDataRemoveButtonRenderer
+		createDataRemoveButtonRenderer,
+		createDataTextAreaRenderer
 	} from '$lib/components/data';
 	import {
 		CollectionTableDatePickerSnippet,
-		CollectionTableFavoriteButtonSnippet
+		CollectionTableFavoriteButtonSnippet,
+		createCollectionTableNameRenderer
 	} from './components';
 
-	const { collectionId }: ICollectionTableProps = $props();
+	const { collectionId, focus }: ICollectionTableProps = $props();
 
 	// TODO: tableName should be defined as prop in table component and be set to context
 	const columns: ITableColumns<ICollectionTable>[] = $derived([
 		{
 			name: 'review',
 			title: null,
-			...createDataInputRenderer({
+			...createDataTextAreaRenderer({
 				validationSchema,
 				placeholder: 'Enter review',
+				maxlength: ColumnLimits.lyubo.review,
 				tableName: 'lyubo'
 			}),
 			style: {
@@ -40,9 +44,10 @@
 		{
 			name: 'name',
 			title: 'Name',
-			...createDataInputRenderer({
+			...createCollectionTableNameRenderer({
 				validationSchema,
 				placeholder: 'Enter name',
+				maxlength: ColumnLimits.lyubo.name,
 				tableName: 'lyubo'
 			}),
 			style: {
@@ -133,4 +138,10 @@
 	No records yet. Add the first one with the + key.
 {/snippet}
 
-<DataTable {columns} name="lyubo_with_tags" filter={{ collection_id: collectionId }} {empty} />
+<DataTable
+	{columns}
+	name="lyubo_with_tags"
+	filter={{ collection_id: collectionId }}
+	{empty}
+	{focus}
+/>

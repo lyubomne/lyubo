@@ -12,6 +12,8 @@ export interface IDataInputSnippetRendererProps {
 	validationSchema?: ZodObject;
 	type?: 'text' | 'number';
 	placeholder?: string;
+	// The same number as the column's CHECK on the server (`ColumnLimits`)
+	maxlength?: number;
 }
 
 // TODO: Improve dependency on validationSchema type passed to rendererProps
