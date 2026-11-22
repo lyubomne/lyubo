@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DataInput, DataRemoveButton } from '$lib/components/data';
-	import type { ITag } from './types';
+	import type { ITag } from '$lib/entities/CollectionTags';
 	import { validationSchema } from './validationSchema';
 
 	const { tag }: { tag: ITag } = $props();

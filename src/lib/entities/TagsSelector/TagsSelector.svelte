@@ -1,107 +1,66 @@
 <script lang="ts">
-	import { ZodError } from 'zod';
 	import type { ITagsSelectorProps } from './types';
 	import { Select } from 'bits-ui';
-	import { query } from '@electric-sql/pglite/template';
-	import { assignRelation, getDB, LiveDB, unassignRelation } from '$lib/db';
+	import { assignRelation, getDB, unassignRelation } from '$lib/db';
+	import { getCollectionTagsContext } from '$lib/entities/CollectionTags';
 	import TableTag from './Tag.svelte';
 	import { DotSmallIcon, DownIcon, IconButton } from '$lib/components/ui';
-	import { tick } from 'svelte';
-	import type { TNillable } from '$lib/types';
 
-	const { value, rowId, collectionId, placeholder = 'Select a tag' }: ITagsSelectorProps = $props();
+	const { value, rowId, placeholder = 'Select a tag' }: ITagsSelectorProps = $props();
 
 	const dbStore = getDB();
-	let tagsDBLive: TNillable<LiveDB<{ id: string; name: string }>> = $state();
+	const tags = getCollectionTagsContext();
 
-	// db Listener is not ready yet on this microtask loop. So we need to run live on the next one.
-	// Otherwise live will be start but no listeners will be triggered
-	tick().then(() => {
-		if (dbStore.db) {
-			tagsDBLive = new LiveDB<{ id: string; name: string }>(
-				dbStore.db,
-				query`SELECT * FROM tags WHERE collection_id = ${collectionId} ORDER BY created_at DESC`
-			);
-		}
-	});
+	const items = $derived(tags.list.map((tag) => ({ value: tag.id, label: tag.name })));
+	const selectedTags = $derived(items.filter((item) => value.includes(item.value)));
 
-	const items = $derived(
-		tagsDBLive?.data.map((item) => ({ value: item.id, label: item.name })) ?? []
-	);
+	const commit = (tagId: string) => {
+		const relation = {
+			db: dbStore.db,
+			table: 'lyubo_tags',
+			leftKey: 'lyubo_id',
+			rightKey: 'tag_id',
+			leftId: rowId,
+			rightId: tagId
+		};
 
-	const selectedTags = $derived(items.filter((item) => value.includes(item.value)) ?? []);
-
-	let error = $state('');
-
-	const commit = async (tagId: string) => {
-		try {
-			if (selectedTags.some((item) => item.value === tagId)) {
-				void unassignRelation({
-					db: dbStore.db,
-					table: 'lyubo_tags',
-					leftKey: 'lyubo_id',
-					rightKey: 'tag_id',
-					leftId: rowId,
-					rightId: tagId
-				});
-			} else {
-				void assignRelation({
-					db: dbStore.db,
-					table: 'lyubo_tags',
-					leftKey: 'lyubo_id',
-					rightKey: 'tag_id',
-					leftId: rowId,
-					rightId: tagId
-				});
-			}
-		} catch (err) {
-			if (err instanceof ZodError) {
-				error = err.issues[0]?.message || 'Invalid value';
-			}
-		}
+		void (value.includes(tagId) ? unassignRelation(relation) : assignRelation(relation));
 	};
 </script>
 
-{#if items.length > 0}
-	<div class="tags-selector">
-		<!-- TODO: Maybe it should be one big select button -->
-		{#each selectedTags as selectedTag (selectedTag.value)}
-			<TableTag value={selectedTag.label} />
-		{/each}
-		<Select.Root type="multiple" {items} {value}>
-			<Select.Trigger aria-label="Select a tag">
-				{#snippet child({ props })}
-					<IconButton icon={DownIcon} label={selectedTags.length ? '' : placeholder} {...props} />
-				{/snippet}
-			</Select.Trigger>
-			<Select.Portal>
-				<div class="tags-selector-content">
-					<Select.Content sideOffset={10}>
-						<Select.Viewport>
-							{#each items as item, i (i + item.value)}
-								<Select.Item
-									label={item.label}
-									value={item.value}
-									onclick={() => commit(item.value)}
-								>
-									{#snippet children({ selected })}
-										{item.label}
-										{#if selected}
-											<DotSmallIcon />
-										{/if}
-									{/snippet}
-								</Select.Item>
-							{/each}
-						</Select.Viewport>
-					</Select.Content>
-				</div>
-			</Select.Portal>
-		</Select.Root>
-	</div>
-	{#if error}
-		<div class="error" role="alert">{error}</div>
-	{/if}
-{/if}
+<div class="tags-selector">
+	<!-- TODO: Maybe it should be one big select button -->
+	{#each selectedTags as selectedTag (selectedTag.value)}
+		<TableTag value={selectedTag.label} />
+	{/each}
+	<Select.Root type="multiple" {items} {value}>
+		<Select.Trigger aria-label="Select a tag">
+			{#snippet child({ props })}
+				<IconButton icon={DownIcon} label={selectedTags.length ? '' : placeholder} {...props} />
+			{/snippet}
+		</Select.Trigger>
+		<Select.Portal>
+			<div class="tags-selector-content">
+				<Select.Content sideOffset={10}>
+					<Select.Viewport>
+						{#each items as item (item.value)}
+							<Select.Item label={item.label} value={item.value} onclick={() => commit(item.value)}>
+								{#snippet children({ selected })}
+									{item.label}
+									{#if selected}
+										<DotSmallIcon />
+									{/if}
+								{/snippet}
+							</Select.Item>
+						{:else}
+							<div class="tags-selector-empty">No tags yet. Add them with Edit tags.</div>
+						{/each}
+					</Select.Viewport>
+				</Select.Content>
+			</div>
+		</Select.Portal>
+	</Select.Root>
+</div>
 
 <style>
 	.tags-selector {
@@ -143,6 +102,13 @@
 				border-radius: var(--radius-4);
 				font-size: var(--font-14);
 				cursor: default;
+			}
+
+			.tags-selector-empty {
+				margin: var(--space-4);
+				padding: var(--space-2);
+				font-size: var(--font-14);
+				color: var(--color-unaccent-1);
 			}
 
 			[data-highlighted] {

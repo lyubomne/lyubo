@@ -77,7 +77,7 @@
 		{
 			name: 'tags',
 			title: 'Tags',
-			...createTagsSelectorRenderer({ collectionId }),
+			...createTagsSelectorRenderer({}),
 			width: 120,
 			expandableRows: [
 				null,

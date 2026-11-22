@@ -6,6 +6,7 @@
 	import { getDB } from '$lib/db';
 	import { AddButton, CollectionTable, addRecord } from '$lib/entities/CollectionTable';
 	import { TagsEditor } from '$lib/entities/TagsEditor';
+	import { setCollectionTagsContext } from '$lib/entities/CollectionTags';
 	import CollectionPanelMenu from './CollectionPanelMenu.svelte';
 	import type { ICollectionPanelProps } from './types';
 	import { COLLECTION_NAME_INPUT_SELECTOR, UNTITLED_COLLECTION } from './utils';
@@ -16,6 +17,7 @@
 	const dbStore = getDB();
 	// Shared by the Add key in the header and the table below it
 	const tableFocus = new TableFocus();
+	setCollectionTagsContext(() => collection.id);
 
 	let panelElement = $state<HTMLElement | null>(null);
 
