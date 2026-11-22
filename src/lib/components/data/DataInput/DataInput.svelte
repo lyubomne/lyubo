@@ -5,6 +5,7 @@
 	import type { HTMLInputAttributes } from 'svelte/elements';
 	import { getDB, getUniqueViolationMessage, updateFieldById } from '$lib/db';
 	import { focusNextField } from '$lib/browser';
+	import { OptimisticValue } from '$lib/state';
 
 	const {
 		tableName,
@@ -19,7 +20,9 @@
 	const dbStore = getDB();
 	const tableFocus = getTableFocus();
 
-	let localValue = $derived(String(value ?? ''));
+	const text = new OptimisticValue(() => String(value ?? ''));
+	// `bind:value` on a number input sets a number
+	const setText = (newValue: string | number) => (text.value = String(newValue));
 	let error = $state('');
 	let inputComponent = $state<HTMLInputElement | null>(null);
 
@@ -37,12 +40,14 @@
 	};
 
 	const commit = async () => {
-		if (error || value === localValue) {
+		if (error) {
 			return;
 		}
 
 		try {
-			await updateFieldById({ db: dbStore.db, name, value: localValue, rowId, tableName });
+			await text.save((newValue) =>
+				updateFieldById({ db: dbStore.db, name, value: newValue, rowId, tableName })
+			);
 		} catch (err) {
 			// The local schema rejects a duplicate value before it reaches the change log
 			const message = getUniqueViolationMessage(err);
@@ -74,7 +79,7 @@
 <!-- TODO: Add aria-labelledby -->
 <div class="data-input">
 	<Input
-		bind:value={localValue}
+		bind:value={() => text.value, setText}
 		bind:ref={inputComponent}
 		{@attach (input) => {
 			if (tableFocus?.take(rowId, name)) input.focus();

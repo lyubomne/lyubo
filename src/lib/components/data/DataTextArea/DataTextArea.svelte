@@ -5,6 +5,7 @@
 	import { TextArea, getTableFocus } from '$lib/components/ui';
 	import { getDB, updateFieldById } from '$lib/db';
 	import { focusNextField, isTextField } from '$lib/browser';
+	import { OptimisticValue } from '$lib/state';
 
 	const {
 		tableName,
@@ -18,7 +19,7 @@
 	const dbStore = getDB();
 	const tableFocus = getTableFocus();
 
-	let localValue = $derived(value ?? '');
+	const text = new OptimisticValue(() => value ?? '');
 	let error = $state('');
 	let textArea = $state<HTMLTextAreaElement | null>(null);
 
@@ -34,11 +35,13 @@
 	};
 
 	const commit = async () => {
-		if (error || (value ?? '') === localValue) {
+		if (error) {
 			return;
 		}
 
-		await updateFieldById({ db: dbStore.db, name, value: localValue, rowId, tableName });
+		await text.save((newValue) =>
+			updateFieldById({ db: dbStore.db, name, value: newValue, rowId, tableName })
+		);
 	};
 
 	// Enter is a line break; there is no Ctrl/Cmd+Enter on a phone keyboard, so blur commits too
@@ -61,7 +64,7 @@
 
 <div class="data-text-area">
 	<TextArea
-		bind:value={localValue}
+		bind:value={text.value}
 		bind:ref={textArea}
 		{@attach (field) => {
 			if (tableFocus?.take(rowId, name)) field.focus();

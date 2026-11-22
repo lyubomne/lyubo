@@ -118,7 +118,33 @@ export default ts.config(
 		}
 	},
 	{
-		files: [`${SHARED}/**/*.svelte`, `${SHARED}/**/*.svelte.ts`],
+		// Rune state used by several layers (`OptimisticValue`): one class per file, no components
+		files: ['src/lib/state/**/*.ts'],
+		ignores: ['**/index.ts', '**/*.test.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					patterns: [
+						{
+							group: APP_IMPORTS.filter((name) => !name.startsWith('svelte')),
+							message: 'State sits below every layer'
+						}
+					]
+				}
+			],
+			'no-restricted-syntax': [
+				'error',
+				{
+					selector:
+						"ExportNamedDeclaration[exportKind='value'] ~ ExportNamedDeclaration[exportKind='value']",
+					message: 'One class per file, named after it'
+				}
+			]
+		}
+	},
+	{
+		files: [`${SHARED}/**/*.svelte`, `${SHARED}/**/*.svelte.ts`, 'src/lib/state/**/*.svelte'],
 		rules: {
 			'no-restricted-syntax': [
 				'error',

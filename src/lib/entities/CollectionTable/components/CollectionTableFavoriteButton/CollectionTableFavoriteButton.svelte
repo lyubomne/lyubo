@@ -2,41 +2,34 @@
 	import { getDB, updateFieldById } from '$lib/db';
 	import type { ICollectionTableFavoriteButtonProps } from './types';
 	import { HeartIcon, IconButton } from '$lib/components/ui';
-	import { PendingWrite } from '$lib/utils';
+	import { OptimisticValue } from '$lib/state';
 
 	const { value: dbIsFavorite, name, rowId }: ICollectionTableFavoriteButtonProps = $props();
 
 	const dbStore = getDB();
 
-	// Fast clicks write faster than the live query answers: show the latest click, not every
-	// intermediate DB value, and toggle from what is shown
-	const pendingWrite = new PendingWrite<boolean>();
-	// Writable derived: follows the DB value of the prop, and `commit` sets it at once
-	let localIsFavorite = $derived(pendingWrite.resolve(dbIsFavorite));
+	// Fast clicks write faster than the live query answers: toggle from what is shown
+	const isFavorite = new OptimisticValue(() => dbIsFavorite);
 
 	const commit = async () => {
-		const value = !localIsFavorite;
-		pendingWrite.start(value);
-		localIsFavorite = value;
-
 		try {
-			// TODO: Do not hardcode tableName, take it from context
-			await updateFieldById({ db: dbStore.db, name, value, rowId, tableName: 'lyubo' });
-			pendingWrite.finish(dbIsFavorite);
+			await isFavorite.save(
+				// TODO: Do not hardcode tableName, take it from context
+				(value) => updateFieldById({ db: dbStore.db, name, value, rowId, tableName: 'lyubo' }),
+				!isFavorite.value
+			);
 		} catch (err) {
-			pendingWrite.fail();
-			localIsFavorite = dbIsFavorite;
 			console.error(err);
 		}
 	};
 </script>
 
-<div class={['favorite-button', localIsFavorite && 'favorite']}>
+<div class={['favorite-button', isFavorite.value && 'favorite']}>
 	<IconButton
 		icon={HeartIcon}
 		onclick={commit}
 		aria-label="favorite"
-		title={localIsFavorite ? 'unfavorite' : 'favorite'}
+		title={isFavorite.value ? 'unfavorite' : 'favorite'}
 	/>
 </div>
 
