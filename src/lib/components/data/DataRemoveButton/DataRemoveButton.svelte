@@ -21,18 +21,4 @@
 	};
 </script>
 
-<div class="remove-button">
-	<IconButton title="remove" {...restProps} icon={TrashIcon} onclick={remove} aria-label="remove" />
-</div>
-
-<style>
-	.remove-button {
-		display: contents;
-
-		:global {
-			svg {
-				fill: var(--color-dark);
-			}
-		}
-	}
-</style>
+<IconButton title="remove" {...restProps} icon={TrashIcon} onclick={remove} aria-label="remove" />

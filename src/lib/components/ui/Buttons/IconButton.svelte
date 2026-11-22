@@ -1,16 +1,10 @@
 <script lang="ts">
 	import type { IIconButtonProps } from './types';
 
-	const {
-		icon: IconComponent,
-		class: className,
-		size = 'sm',
-		label,
-		...restProps
-	}: IIconButtonProps = $props();
+	const { icon: IconComponent, class: className, label, ...restProps }: IIconButtonProps = $props();
 </script>
 
-<button class={['icon-button', className, size]} {...restProps}>
+<button class={['icon-button', className]} {...restProps}>
 	{#if label}
 		{label}
 	{/if}
@@ -18,14 +12,7 @@
 </button>
 
 <style>
-	.sm {
-		--size: var(--size-20);
-	}
-
-	.md {
-		--size: var(--size-24);
-	}
-
+	/* A printed symbol in the row; it rises as a key under the pointer and sinks when pressed */
 	.icon-button {
 		vertical-align: top;
 		display: flex;
@@ -35,21 +22,29 @@
 		min-width: var(--size-24);
 		height: var(--size-24);
 		border-radius: var(--radius-4);
+		transition: box-shadow var(--duration-fast);
 
-		:global {
-			svg {
-				transition: transform 0.2s ease;
-				filter: url($lib/components/ui/Filters/shadowFilterBase.svg#shadow);
-				width: var(--size);
-				height: var(--size);
-			}
+		:global(svg) {
+			flex: none;
+			width: var(--size-16);
+			height: var(--size-16);
+			fill: var(--color-unaccent-1);
+		}
 
-			svg:hover {
-				transform: scale(1.1);
-			}
+		&:active {
+			background: var(--color-surface);
+			box-shadow: var(--shadow-key-pressed);
+		}
+	}
 
-			svg:active {
-				transform: scale(1);
+	/* The white edge is an outline: a border would move the symbol. Focus keeps its own outline */
+	@media (hover: hover) {
+		.icon-button:hover:not(:active) {
+			background: var(--color-surface);
+			box-shadow: var(--shadow-key-raised);
+
+			&:not(:focus-visible) {
+				outline: var(--border-2) solid var(--color-white);
 			}
 		}
 	}

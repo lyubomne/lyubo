@@ -114,11 +114,6 @@
 				border-radius: var(--radius-4);
 			}
 
-			/* Optical correction, measured: shadow and tall body put the icon 1px below the digits */
-			[data-date-field-input] [data-popover-trigger] svg {
-				translate: 0 -1px;
-			}
-
 			[data-bits-floating-content-wrapper] {
 				z-index: 20 !important;
 			}
@@ -185,11 +180,6 @@
 				svg {
 					fill: var(--color-dark);
 				}
-			}
-
-			svg {
-				fill: var(--color-white);
-				filter: url($lib/components/ui/Filters/shadowFilterContrast.svg#shadow);
 			}
 		}
 	}

@@ -69,12 +69,6 @@
 		gap: var(--space-4);
 		font-size: var(--font-14);
 		align-items: center;
-
-		:global {
-			svg {
-				fill: var(--color-unaccent-1);
-			}
-		}
 	}
 
 	.tags-selector-content {

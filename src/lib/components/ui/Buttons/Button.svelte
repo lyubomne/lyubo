@@ -90,11 +90,6 @@
 	.icon-only {
 		width: var(--button-size, var(--size-32));
 		padding: 0;
-
-		:global(svg) {
-			width: 60%;
-			height: 60%;
-		}
 	}
 
 	/* Touch target around the key, measured from inside the border; `min()` keeps larger keys */

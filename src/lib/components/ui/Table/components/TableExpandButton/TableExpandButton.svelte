@@ -11,18 +11,4 @@
 	};
 </script>
 
-<div class="expand-button">
-	<IconButton icon={VerticalDotsSmallIcon} onclick={expand} aria-label="expand" title="expand" />
-</div>
-
-<style>
-	.expand-button {
-		display: contents;
-
-		:global {
-			svg {
-				fill: var(--color-unaccent-1);
-			}
-		}
-	}
-</style>
+<IconButton icon={VerticalDotsSmallIcon} onclick={expand} aria-label="expand" title="expand" />

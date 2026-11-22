@@ -43,13 +43,6 @@
 		}
 	}
 
-	:not(.favorite) :global {
-		svg {
-			fill: var(--color-white);
-			filter: url($lib/components/ui/Filters/shadowFilterContrast.svg#shadow);
-		}
-	}
-
 	.favorite :global {
 		svg {
 			fill: var(--color-accent-1);
