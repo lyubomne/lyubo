@@ -7,7 +7,7 @@
 	import TableTag from './Tag.svelte';
 	import { DotSmallIcon, DownIcon, IconButton } from '$lib/components/ui';
 	import { tick } from 'svelte';
-	import type { TNillable } from '$lib/common/types';
+	import type { TNillable } from '$lib/types';
 
 	const { value, rowId, collectionId, placeholder = 'Select a tag' }: ITagsSelectorProps = $props();
 

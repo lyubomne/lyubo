@@ -2,7 +2,7 @@
 	import { getDB, updateFieldById } from '$lib/db';
 	import type { ICollectionTableFavoriteButtonProps } from './types';
 	import { HeartIcon, IconButton } from '$lib/components/ui';
-	import { PendingWrite } from '$lib/common/pendingWrite';
+	import { PendingWrite } from '$lib/utils';
 
 	const { value: dbIsFavorite, name, rowId }: ICollectionTableFavoriteButtonProps = $props();
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getFirstLine } from './text';
+import { getFirstLine } from './getFirstLine';
 
 describe('getFirstLine', () => {
 	it('returns the first line of a multi-line text', () => {

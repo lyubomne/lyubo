@@ -1,6 +1,6 @@
 import type { Component, Snippet } from 'svelte';
 import type { HTMLButtonAttributes } from 'svelte/elements';
-import type { WithElementRef } from '$lib/common/types';
+import type { WithElementRef } from '$lib/types';
 
 export type IIconButtonSize = 'sm' | 'md';
 

@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { ColumnLimits } from '$lib/common/limits';
+import { ColumnLimits } from '$lib/constants';
 
 export const validationSchema = z.object({
 	id: z.uuid(),

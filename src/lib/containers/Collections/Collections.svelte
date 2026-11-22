@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { query } from '@electric-sql/pglite/template';
 	import { tick } from 'svelte';
-	import type { TNillable } from '$lib/common/types';
+	import type { TNillable } from '$lib/types';
 	import { Button, PlusIcon } from '$lib/components/ui';
 	import { LiveDB, getDB } from '$lib/db';
 	import {

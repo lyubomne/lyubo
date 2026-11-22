@@ -4,7 +4,7 @@
 	import TableBody from './TableBody.svelte';
 	import TableHead from './TableHead.svelte';
 	import type { IBaseTableData, ITableProps } from './types';
-	import { throttle } from '$lib/common/utils';
+	import { throttle } from '$lib/utils';
 	import { TableFocus } from './focus.svelte';
 
 	const { columns, data, empty, focus }: ITableProps<TTableData> = $props();

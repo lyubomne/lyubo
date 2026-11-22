@@ -2,7 +2,7 @@
 	import type { ICollectionTable, ICollectionTableProps } from './types';
 	import { type ITableColumns, TableExpandButtonSnippet } from '$lib/components/ui';
 	import { validationSchema } from './validationSchema';
-	import { ColumnLimits } from '$lib/common/limits';
+	import { ColumnLimits } from '$lib/constants';
 	import { createTagsSelectorRenderer } from '$lib/entities/TagsSelector';
 	import {
 		DataTable,

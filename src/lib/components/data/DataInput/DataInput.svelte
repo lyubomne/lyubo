@@ -4,7 +4,7 @@
 	import { Input, getTableFocus } from '$lib/components/ui';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 	import { getDB, getUniqueViolationMessage, updateFieldById } from '$lib/db';
-	import { focusNextField } from '$lib/common/dom';
+	import { focusNextField } from '$lib/browser';
 
 	const {
 		tableName,

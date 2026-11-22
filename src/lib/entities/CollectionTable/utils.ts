@@ -1,7 +1,7 @@
 import { getLocalTimeZone, today } from '@internationalized/date';
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { v4 as uuidv4 } from 'uuid';
-import type { TNillable } from '$lib/common/types';
+import type { TNillable } from '$lib/types';
 import type { TableFocus } from '$lib/components/ui';
 
 export const insertRecord = async ({

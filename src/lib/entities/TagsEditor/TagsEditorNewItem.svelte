@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ColumnLimits } from '$lib/common/limits';
+	import { ColumnLimits } from '$lib/constants';
 	import { Input } from '$lib/components/ui';
 	import { getDB, getUniqueViolationMessage } from '$lib/db';
 	import type { EventHandler } from 'svelte/elements';

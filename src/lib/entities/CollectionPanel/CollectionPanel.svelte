@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { isTextField } from '$lib/common/dom';
-	import { ColumnLimits } from '$lib/common/limits';
+	import { isTextField } from '$lib/browser';
+	import { ColumnLimits } from '$lib/constants';
 	import { DataInput } from '$lib/components/data';
 	import { TableFocus } from '$lib/components/ui';
 	import { getDB } from '$lib/db';

@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
+import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/constants';
 import { type IServerDB, createServerDB } from '$lib/server/testing';
 import { COLLECTION_ID, LYUBO_ID, TAG_ID, WRITE_ID } from '$lib/testing';
 

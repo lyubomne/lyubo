@@ -2,7 +2,7 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import api from '$lib/api/client';
-import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
+import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/constants';
 import {
 	COLLECTION_ID,
 	LYUBO_ID,

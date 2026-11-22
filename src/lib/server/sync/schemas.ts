@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
+import { MAX_SYNC_REQUEST_CHANGES } from '$lib/constants';
 
 export const transportSchema = z
 	.array(

@@ -1,3 +1,5 @@
+import type { Breakpoints, FullWidthBreakpoint } from '$lib/constants';
+
 export type TNillable<T> = T | null | undefined;
 
 export type TNestedKeys<TObject extends object> = {
@@ -28,3 +30,5 @@ export type TNestedValue<T, K extends string> = TNestedValueByKeys<T, TSplit<K>>
 export type NonNullableRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> };
 
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
+
+export type Breakpoint = keyof typeof Breakpoints | typeof FullWidthBreakpoint;

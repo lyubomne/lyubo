@@ -6,7 +6,7 @@
 	import { Button, DownIcon } from '$lib/components/ui';
 	import TagsEditorNewItem from './TagsEditorNewItem.svelte';
 	import { tick } from 'svelte';
-	import type { TNillable } from '$lib/common/types';
+	import type { TNillable } from '$lib/types';
 	import TagsEditorItem from './TagsEditorItem.svelte';
 
 	const { collectionId }: ITagsEditorProps = $props();

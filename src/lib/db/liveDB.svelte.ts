@@ -1,4 +1,4 @@
-import type { TNillable } from '$lib/common/types';
+import type { TNillable } from '$lib/types';
 import type { LiveQuery, PGliteWithLive } from '@electric-sql/pglite/live';
 import type { query } from '@electric-sql/pglite/template';
 import { createSubscriber } from 'svelte/reactivity';

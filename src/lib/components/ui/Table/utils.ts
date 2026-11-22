@@ -1,5 +1,5 @@
-import { isBelowBreakpoint, isLessThanCurrentBreakpoint } from '$lib/common/breakpoints';
-import type { NonNullableRequired } from '$lib/common/types';
+import { isBelowBreakpoint, isLessThanCurrentBreakpoint } from '$lib/utils';
+import type { NonNullableRequired } from '$lib/types';
 import type {
 	IBaseTableData,
 	ITableActionColumn,

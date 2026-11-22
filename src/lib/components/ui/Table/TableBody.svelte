@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getNestedValues, styleObjectToString } from '$lib/common/utils';
+	import { getNestedValues, styleObjectToString } from '$lib/utils';
 	import { isActionColumn } from './utils';
 	import { getTableContext } from './context.svelte';
 	import type { ITableExpandableRowColumn, IBaseTableData, ITableColumns } from './types';

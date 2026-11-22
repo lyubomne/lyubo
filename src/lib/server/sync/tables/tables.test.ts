@@ -3,7 +3,7 @@ import { identifier } from '@electric-sql/pglite/template';
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { ColumnLimits } from '$lib/common/limits';
+import { ColumnLimits } from '$lib/constants';
 import { SYNCED_TABLES } from '$lib/db';
 import { SERVER_SCHEMA } from '$lib/server/testing';
 import { COLLECTION_ID, createLocalDB } from '$lib/testing';

@@ -1,5 +1,5 @@
-import type { Breakpoint } from '$lib/common/breakpoints';
-import type { TNestedValue } from '$lib/common/types';
+import type { Breakpoint } from '$lib/types';
+import type { TNestedValue } from '$lib/types';
 import type { Snippet } from 'svelte';
 import type { TableFocus } from './focus.svelte';
 

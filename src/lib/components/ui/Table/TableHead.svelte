@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { pxToRem } from '$lib/common/utils';
+	import { pxToRem } from '$lib/browser';
 	import { getTableContext } from './context.svelte';
 
 	const tableContext = getTableContext();

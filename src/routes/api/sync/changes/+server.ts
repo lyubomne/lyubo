@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import postgres, { PostgresError } from 'postgres';
 import { APP_DATABASE_URL } from '$env/static/private';
 
-import { MAX_SYNC_REQUEST_BYTES } from '$lib/common/limits';
+import { MAX_SYNC_REQUEST_BYTES } from '$lib/constants';
 import { readJsonBody } from '$lib/server/http';
 import { ChangeRejectedError, TABLES, applyChange, transportSchema } from '$lib/server/sync';
 

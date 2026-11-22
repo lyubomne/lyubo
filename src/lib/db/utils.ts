@@ -1,4 +1,4 @@
-import type { TNillable } from '$lib/common/types';
+import type { TNillable } from '$lib/types';
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { identifier } from '@electric-sql/pglite/template';
 

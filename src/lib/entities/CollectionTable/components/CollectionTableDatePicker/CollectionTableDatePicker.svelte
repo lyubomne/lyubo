@@ -3,7 +3,7 @@
 	import type { ICollectionTableDatePickerProps } from './types';
 	import { getDB, updateFieldById } from '$lib/db';
 	import { DatePicker } from '$lib/components/ui';
-	import { debounce } from '$lib/common/utils';
+	import { debounce } from '$lib/utils';
 
 	const { value, name, rowId }: ICollectionTableDatePickerProps = $props();
 

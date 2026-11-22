@@ -1,7 +1,7 @@
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { v4 as uuidv4 } from 'uuid';
-import type { TNillable } from '$lib/common/types';
-import { waitForElement } from '$lib/common/dom';
+import type { TNillable } from '$lib/types';
+import { waitForElement } from '$lib/browser';
 import type { ICollection } from './types';
 
 export const UNTITLED_COLLECTION = 'Untitled collection';

@@ -4,7 +4,7 @@ import { type PGliteWithLive, live } from '@electric-sql/pglite/live';
 import { PGLITE_PARSERS } from './parsers';
 import { applyLocalSchema } from './schemas';
 import { getContext, setContext } from 'svelte';
-import type { TNillable } from '$lib/common/types';
+import type { TNillable } from '$lib/types';
 import { RealtimeSync, SYNCED_TABLES } from './sync';
 
 // PGlite 0.5 runs Postgres 18 and cannot open the Postgres 17 data of 'idb://lyubo'.

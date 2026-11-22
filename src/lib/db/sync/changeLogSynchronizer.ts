@@ -2,7 +2,7 @@ import { type PGliteWithLive } from '@electric-sql/pglite/live';
 import { identifier } from '@electric-sql/pglite/template';
 
 import api from '$lib/api/client.js';
-import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/common/limits';
+import { MAX_SYNC_REQUEST_BYTES, MAX_SYNC_REQUEST_CHANGES } from '$lib/constants';
 import { SYNCED_TABLES } from './tables';
 
 type Change = {

@@ -1,4 +1,4 @@
-import type { TNillable } from '$lib/common/types';
+import type { TNillable } from '$lib/types';
 import type { ZodObject } from 'zod';
 
 export interface IDataInputBaseProps {

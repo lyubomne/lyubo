@@ -3,7 +3,7 @@
 	import type { ICollectionTable } from '$lib/entities/CollectionTable';
 	import { DataInput } from '$lib/components/data';
 	import { getTableContext } from '$lib/components/ui';
-	import { getFirstLine } from '$lib/common/text';
+	import { getFirstLine } from '$lib/utils';
 
 	const { rowId, ...restProps }: ICollectionTableNameSnippetProps = $props();
 

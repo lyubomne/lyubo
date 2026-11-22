@@ -4,7 +4,7 @@
 	import type { IDataTextAreaSnippetProps } from './types';
 	import { TextArea, getTableFocus } from '$lib/components/ui';
 	import { getDB, updateFieldById } from '$lib/db';
-	import { focusNextField, isTextField } from '$lib/common/dom';
+	import { focusNextField, isTextField } from '$lib/browser';
 
 	const {
 		tableName,

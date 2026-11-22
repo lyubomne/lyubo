@@ -2,7 +2,7 @@
 	import { identifier, query, sql } from '@electric-sql/pglite/template';
 	import { LiveDB, getDB } from '$lib/db';
 	import { tick } from 'svelte';
-	import type { TNillable } from '$lib/common/types';
+	import type { TNillable } from '$lib/types';
 	import { Table, type IBaseTableData } from '$lib/components/ui';
 	import type { IDataTableProps } from './types';
 
