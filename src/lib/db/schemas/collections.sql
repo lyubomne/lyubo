@@ -142,6 +142,11 @@ BEGIN
   IF edited = '{}'::jsonb THEN
     RETURN NEW;
   END IF;
+  -- The sort is a pair: the server's CHECK wants both columns or neither, so a change of one
+  -- sends and keeps both
+  IF edited ?| ARRAY['sort_column', 'sort_direction'] THEN
+    edited := edited || jsonb_build_object('sort_column', NEW.sort_column, 'sort_direction', NEW.sort_direction);
+  END IF;
   SELECT
     * INTO synced
   FROM
@@ -155,11 +160,8 @@ BEGIN
   IF NEW.position IS DISTINCT FROM synced.position THEN
     changed_cols := array_append(changed_cols, 'position');
   END IF;
-  IF NEW.sort_column IS DISTINCT FROM synced.sort_column THEN
-    changed_cols := array_append(changed_cols, 'sort_column');
-  END IF;
-  IF NEW.sort_direction IS DISTINCT FROM synced.sort_direction THEN
-    changed_cols := array_append(changed_cols, 'sort_direction');
+  IF NEW.sort_column IS DISTINCT FROM synced.sort_column OR NEW.sort_direction IS DISTINCT FROM synced.sort_direction THEN
+    changed_cols := changed_cols || ARRAY['sort_column', 'sort_direction'];
   END IF;
   IF NEW.created_at IS DISTINCT FROM synced.created_at THEN
     changed_cols := array_append(changed_cols, 'created_at');

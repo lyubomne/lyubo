@@ -27,6 +27,8 @@
 						c.id,
 						c.name,
 						c.position,
+						c.sort_column,
+						c.sort_direction,
 						(SELECT count(*)::integer FROM lyubo l WHERE l.collection_id = c.id) AS record_count
 					FROM collections c
 					ORDER BY c.position, c.created_at, c.id

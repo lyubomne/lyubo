@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ICollectionTable, ICollectionTableProps } from './types';
-	import { type ITableColumns, TableExpandButtonSnippet } from '$lib/components/ui';
+	import { Button, type ITableColumns, TableExpandButtonSnippet } from '$lib/components/ui';
 	import { validationSchema } from './validationSchema';
 	import { ColumnLimits } from '$lib/constants';
 	import { createTagsSelectorRenderer } from '$lib/entities/TagsSelector';
@@ -15,8 +15,11 @@
 		CollectionTableFavoriteButtonSnippet,
 		createCollectionTableNameRenderer
 	} from './components';
+	import { RECORD_ORDER_BY, buildRecordConditions } from './utils';
 
-	const { collectionId, focus }: ICollectionTableProps = $props();
+	const { collectionId, filter, sort, onSortChange, focus }: ICollectionTableProps = $props();
+
+	const where = $derived(buildRecordConditions(filter));
 
 	// TODO: tableName should be defined as prop in table component and be set to context
 	const columns: ITableColumns<ICollectionTable>[] = $derived([
@@ -43,6 +46,7 @@
 		},
 		{
 			name: 'name',
+			sortable: true,
 			title: 'Name',
 			...createCollectionTableNameRenderer({
 				validationSchema,
@@ -57,6 +61,7 @@
 		},
 		{
 			name: 'rating',
+			sortable: true,
 			title: 'Rating',
 			...createDataInputRenderer({
 				validationSchema,
@@ -67,6 +72,7 @@
 		},
 		{
 			name: 'favorite',
+			sortable: true,
 			title: 'Fav',
 			renderer: CollectionTableFavoriteButtonSnippet,
 			width: 48,
@@ -76,6 +82,7 @@
 		},
 		{
 			name: 'tags',
+			sortable: true,
 			title: 'Tags',
 			...createTagsSelectorRenderer({}),
 			width: 120,
@@ -95,6 +102,7 @@
 		},
 		{
 			name: 'rated_on',
+			sortable: true,
 			title: 'Rated on',
 			renderer: CollectionTableDatePickerSnippet,
 			width: 120,
@@ -135,13 +143,34 @@
 </script>
 
 {#snippet empty()}
-	No records yet. Add the first one with the + key.
+	{#if filter.isActive}
+		<div class="collection-table-no-match">
+			No records match the search or filters.
+			<Button onclick={filter.clear}>Clear</Button>
+		</div>
+	{:else}
+		No records yet. Add the first one with the + key.
+	{/if}
 {/snippet}
 
 <DataTable
 	{columns}
 	name="lyubo_with_tags"
 	filter={{ collection_id: collectionId }}
+	{where}
+	{sort}
+	{onSortChange}
+	orderBy={RECORD_ORDER_BY}
 	{empty}
 	{focus}
 />
+
+<style>
+	.collection-table-no-match {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-8);
+	}
+</style>

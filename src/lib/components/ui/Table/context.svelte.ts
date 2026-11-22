@@ -13,6 +13,8 @@ class TableStore<TTableData extends IBaseTableData> {
 	expandableRowsColumns: ITableExpandableRowColumns<TTableData>[];
 	expandedRows: Record<string, boolean>;
 	focus: TableFocus;
+	sort: ITableProps<TTableData>['sort'];
+	onSortChange: ITableProps<TTableData>['onSortChange'];
 	#rowsById: Map<string, TTableData>;
 
 	constructor(propsFn: () => ITablePropsWithExpandable<TTableData>) {
@@ -22,6 +24,8 @@ class TableStore<TTableData extends IBaseTableData> {
 		this.expandableRowsColumns = $derived(propsFn().expandableRowsColumns);
 		this.expandedRows = $state({});
 		this.focus = $derived(propsFn().focus);
+		this.sort = $derived(propsFn().sort);
+		this.onSortChange = $derived(propsFn().onSortChange);
 	}
 
 	expandRow(rowId: string) {

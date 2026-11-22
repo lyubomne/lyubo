@@ -3,3 +3,4 @@ export * from './context.svelte';
 export * from './focus.svelte';
 export * from './components';
 export * from './types';
+export { getNextSort } from './utils';

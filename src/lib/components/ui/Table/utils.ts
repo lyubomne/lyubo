@@ -5,7 +5,8 @@ import type {
 	ITableActionColumn,
 	ITableColumns,
 	ITableExpandableRowColumns,
-	ITableExpandableColumnConfig
+	ITableExpandableColumnConfig,
+	ITableSort
 } from './types';
 
 export const isActionColumn = <TTableData extends IBaseTableData>(
@@ -75,4 +76,16 @@ export const prepareColumns = <TTableData extends IBaseTableData>(
 	}
 
 	return { mainColumns, expandableRowsColumns };
+};
+
+// A column cycles from ascending to descending and back to the default order
+export const getNextSort = (
+	sort: ITableSort | null | undefined,
+	column: string
+): ITableSort | null => {
+	if (sort?.column !== column) {
+		return { column, direction: 'asc' };
+	}
+
+	return sort.direction === 'asc' ? { column, direction: 'desc' } : null;
 };

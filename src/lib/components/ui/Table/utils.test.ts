@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ITableColumns, ITableExpandableColumnConfig } from './types';
-import { prepareColumns } from './utils';
+import { getNextSort, prepareColumns } from './utils';
 
 interface IRow {
 	id: string;
@@ -76,5 +76,28 @@ describe('prepareColumns', () => {
 			{ ...column, currentExpandableColumn: { breakpoint: 'md' } }
 		]);
 		expect(expandableRowsColumns[0]).toBeUndefined();
+	});
+});
+
+describe('getNextSort', () => {
+	it.each([
+		{ name: 'an unsorted table', sort: null, expected: { column: 'name', direction: 'asc' } },
+		{
+			name: 'another column',
+			sort: { column: 'rating', direction: 'desc' } as const,
+			expected: { column: 'name', direction: 'asc' }
+		},
+		{
+			name: 'the column ascending',
+			sort: { column: 'name', direction: 'asc' } as const,
+			expected: { column: 'name', direction: 'desc' }
+		},
+		{
+			name: 'the column descending',
+			sort: { column: 'name', direction: 'desc' } as const,
+			expected: null
+		}
+	])('cycles the column of $name', ({ sort, expected }) => {
+		expect(getNextSort(sort, 'name')).toEqual(expected);
 	});
 });

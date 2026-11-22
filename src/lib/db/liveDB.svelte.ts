@@ -1,32 +1,43 @@
-import type { TNillable } from '$lib/types';
-import type { LiveQuery, PGliteWithLive } from '@electric-sql/pglite/live';
-import type { query } from '@electric-sql/pglite/template';
+import type { PGliteWithLive } from '@electric-sql/pglite/live';
+import type { query, sql } from '@electric-sql/pglite/template';
 import { createSubscriber } from 'svelte/reactivity';
 
 // Built with the `query` template tag of '@electric-sql/pglite/template', which binds values as
 // parameters and escapes `identifier`s, so a live query is never put together from strings
 export type TLiveQuery = ReturnType<typeof query>;
+// A part of a query from the `sql` template tag, nested into `query` or `db.sql`
+export type TSqlFragment = ReturnType<typeof sql>;
+
+/*
+ * Runs a live query until the returned stop is called. Stopping waits for the query to start: a
+ * query stopped earlier would stay live and run again on every write.
+ */
+export const startLiveQuery = <TResult>(
+	db: PGliteWithLive,
+	{ query, params }: TLiveQuery,
+	onResult: (rows: TResult[]) => void
+): (() => Promise<void>) => {
+	const live = db.live.query<TResult>(query, params, (res) => onResult(res.rows));
+
+	live.catch((err) => console.error(err));
+
+	return () => live.then((res) => res.unsubscribe()).catch(() => undefined);
+};
 
 export class LiveDB<TResult> {
-	#liveDB: TNillable<LiveQuery<TResult>>;
 	#data: TResult[] = [];
 	#hasResult = false;
 	#subscribe;
 
-	constructor(db: PGliteWithLive, { query, params }: TLiveQuery) {
+	constructor(db: PGliteWithLive, liveQuery: TLiveQuery) {
 		this.#subscribe = createSubscriber((update) => {
-			db.live
-				.query<TResult>(query, params, (res) => {
-					this.#data = res.rows;
-					this.#hasResult = true;
-					update();
-				})
-				.then((res) => {
-					this.#liveDB = res;
-				})
-				.catch((err) => console.error(err));
+			const stop = startLiveQuery<TResult>(db, liveQuery, (rows) => {
+				this.#data = rows;
+				this.#hasResult = true;
+				update();
+			});
 
-			return () => this.#liveDB?.unsubscribe();
+			return () => void stop();
 		});
 	}
 

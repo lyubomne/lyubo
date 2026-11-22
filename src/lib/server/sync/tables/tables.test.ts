@@ -3,7 +3,7 @@ import { identifier } from '@electric-sql/pglite/template';
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { ColumnLimits } from '$lib/constants';
+import { COLLECTION_SORT_COLUMNS, ColumnLimits, SORT_DIRECTIONS } from '$lib/constants';
 import { SYNCED_TABLES } from '$lib/db';
 import { SERVER_SCHEMA } from '$lib/server/testing';
 import { COLLECTION_ID, createLocalDB } from '$lib/testing';
@@ -123,6 +123,36 @@ describe('synced table contract', () => {
 			await (isAccepted
 				? expect(result).resolves.toBeDefined()
 				: expect(result).rejects.toMatchObject({ code: '23514' }));
+		});
+	});
+
+	// The client validates against COLLECTION_SORT_COLUMNS; the server must accept exactly these
+	describe('collection sort', () => {
+		const sortCollection = (sort_column: string | null, sort_direction: string | null) =>
+			serverDB.sql`
+				INSERT INTO collections (id, sort_column, sort_direction)
+				VALUES (gen_random_uuid(), ${sort_column}, ${sort_direction})
+			`;
+
+		it.each(
+			COLLECTION_SORT_COLUMNS.flatMap((column) =>
+				SORT_DIRECTIONS.map((direction) => ({ column, direction }))
+			)
+		)('accepts sorting by $column $direction', async ({ column, direction }) => {
+			const result = sortCollection(column, direction);
+
+			await expect(result).resolves.toBeDefined();
+		});
+
+		it.each([
+			{ name: 'a column outside the list', column: 'review', direction: 'asc' },
+			{ name: 'a column without a direction', column: 'name', direction: null },
+			{ name: 'a direction without a column', column: null, direction: 'asc' },
+			{ name: 'another direction', column: 'name', direction: 'ASC' }
+		])('rejects $name', async ({ column, direction }) => {
+			const result = sortCollection(column, direction);
+
+			await expect(result).rejects.toMatchObject({ code: '23514' });
 		});
 	});
 });

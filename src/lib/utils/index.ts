@@ -1,4 +1,5 @@
 export * from './debounce';
+export * from './escapeLikePattern';
 export * from './getFirstLine';
 export * from './getNestedValues';
 export * from './isBelowBreakpoint';

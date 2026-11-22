@@ -2,14 +2,21 @@
 	import { isTextField } from '$lib/browser';
 	import { ColumnLimits } from '$lib/constants';
 	import { DataInput } from '$lib/components/data';
-	import { TableFocus } from '$lib/components/ui';
+	import { TableFocus, type ITableSort } from '$lib/components/ui';
 	import { getDB } from '$lib/db';
+	import { OptimisticValue } from '$lib/state';
 	import { AddButton, CollectionTable, addRecord } from '$lib/entities/CollectionTable';
 	import { TagsEditor } from '$lib/entities/TagsEditor';
 	import { setCollectionTagsContext } from '$lib/entities/CollectionTags';
+	import { CollectionFilter, CollectionFilterStore } from '$lib/entities/CollectionFilter';
 	import CollectionPanelMenu from './CollectionPanelMenu.svelte';
 	import type { ICollectionPanelProps } from './types';
-	import { COLLECTION_NAME_INPUT_SELECTOR, UNTITLED_COLLECTION } from './utils';
+	import {
+		COLLECTION_NAME_INPUT_SELECTOR,
+		UNTITLED_COLLECTION,
+		parseSortKey,
+		sortCollection
+	} from './utils';
 	import { validationSchema } from './validationSchema';
 
 	const { collection, canMoveLeft, canMoveRight, onMove }: ICollectionPanelProps = $props();
@@ -17,7 +24,20 @@
 	const dbStore = getDB();
 	// Shared by the Add key in the header and the table below it
 	const tableFocus = new TableFocus();
-	setCollectionTagsContext(() => collection.id);
+	const tags = setCollectionTagsContext(() => collection.id);
+	const filter = new CollectionFilterStore(() => tags.list);
+
+	// A string, which OptimisticValue compares by content: 'name asc', or '' for the default order
+	const sortKey = new OptimisticValue(() =>
+		collection.sort_column ? `${collection.sort_column} ${collection.sort_direction}` : ''
+	);
+	const sort = $derived(parseSortKey(sortKey.value));
+
+	const handleSortChange = (newSort: ITableSort | null) =>
+		void sortKey.save(
+			() => sortCollection({ db: dbStore.db, id: collection.id, sort: newSort }),
+			newSort ? `${newSort.column} ${newSort.direction}` : ''
+		);
 
 	let panelElement = $state<HTMLElement | null>(null);
 
@@ -48,7 +68,7 @@
 		}
 
 		e.preventDefault();
-		void addRecord({ db: dbStore.db, collectionId: collection.id, focus: tableFocus });
+		void addRecord({ db: dbStore.db, collectionId: collection.id, focus: tableFocus, filter });
 	};
 </script>
 
@@ -77,14 +97,21 @@
 			<span aria-hidden="true">{collection.record_count}</span>
 			<span class="visually-hidden">{recordsLabel}</span>
 		</span>
+		<CollectionFilter {filter} {sort} onSortChange={handleSortChange} />
 		<TagsEditor collectionId={collection.id} />
 		<CollectionPanelMenu {collection} {canMoveLeft} {canMoveRight} {onMove} onRename={rename} />
 		<div class="collection-panel-add">
-			<AddButton collectionId={collection.id} focus={tableFocus} />
+			<AddButton collectionId={collection.id} focus={tableFocus} {filter} />
 		</div>
 	</header>
 	<div class="collection-panel-table">
-		<CollectionTable collectionId={collection.id} focus={tableFocus} />
+		<CollectionTable
+			collectionId={collection.id}
+			{filter}
+			{sort}
+			onSortChange={handleSortChange}
+			focus={tableFocus}
+		/>
 	</div>
 </section>
 

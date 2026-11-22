@@ -140,6 +140,20 @@ describe('local schema', () => {
 				]);
 			});
 
+			// The server's CHECK wants both or neither: a lone direction fails on a server row whose
+			// sort another device has cleared
+			it('logs both sort columns when only the direction changes', async () => {
+				await syncIn(db, 'collections', [
+					serverCollection({ sort_column: 'rating', sort_direction: 'asc' })
+				]);
+
+				await db.sql`UPDATE collections SET sort_direction = 'desc' WHERE id = ${COLLECTION_ID}`;
+
+				expect((await readChangeLog(db)).map((change) => change.value)).toEqual([
+					{ sort_column: 'rating', sort_direction: 'desc' }
+				]);
+			});
+
 			it('logs a delete of a synced collection with only its primary key', async () => {
 				await syncIn(db, 'collections', [serverCollection()]);
 
@@ -260,6 +274,20 @@ describe('local schema', () => {
 
 			expect(await localWriteId('lyubo_local')).toBeUndefined();
 			expect((await readChangeLog(db)).map((c) => c.operation)).toEqual(['insert', 'delete']);
+		});
+
+		it('shows the local sort of a collection as a pair when the server clears its sort', async () => {
+			await syncIn(db, 'collections', [
+				serverCollection({ sort_column: 'name', sort_direction: 'asc' })
+			]);
+			await db.sql`UPDATE collections SET sort_direction = 'desc' WHERE id = ${COLLECTION_ID}`;
+
+			await syncIn(db, 'collections', [serverCollection()]);
+
+			const { rows } = await db.sql`
+				SELECT sort_column, sort_direction FROM collections WHERE id = ${COLLECTION_ID}
+			`;
+			expect(rows).toEqual([{ sort_column: 'name', sort_direction: 'desc' }]);
 		});
 
 		it('keeps a newer local write when an older one syncs back', async () => {

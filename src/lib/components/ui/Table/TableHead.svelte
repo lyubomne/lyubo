@@ -1,15 +1,37 @@
 <script lang="ts">
 	import { pxToRem } from '$lib/browser';
+	import { SortIndicator } from '$lib/components/ui';
 	import { getTableContext } from './context.svelte';
+	import { getNextSort, isActionColumn } from './utils';
 
 	const tableContext = getTableContext();
+
+	const AriaSort = { asc: 'ascending', desc: 'descending' } as const;
 </script>
 
 <thead>
 	<tr>
 		{#each tableContext.columns as column (column.name)}
-			<th style={column.width ? `width: ${pxToRem(column.width)}` : ''}>
-				{'title' in column ? column.title : null}
+			{@const direction =
+				tableContext.sort?.column === column.name ? tableContext.sort.direction : undefined}
+			<th
+				style={column.width ? `width: ${pxToRem(column.width)}` : ''}
+				aria-sort={direction ? AriaSort[direction] : undefined}
+			>
+				{#if isActionColumn(column)}
+					{null}
+				{:else if column.sortable && column.title && tableContext.onSortChange}
+					<button
+						class="table-sort"
+						type="button"
+						onclick={() => tableContext.onSortChange?.(getNextSort(tableContext.sort, column.name))}
+					>
+						{column.title}
+						<SortIndicator {direction} />
+					</button>
+				{:else}
+					{column.title}
+				{/if}
 			</th>
 		{/each}
 	</tr>
@@ -49,5 +71,34 @@
 
 	th:last-child {
 		padding-right: var(--space-16);
+	}
+
+	/* A label, not a key: the whole header cell is its hit area */
+	.table-sort {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-4);
+		max-width: 100%;
+		border-radius: var(--radius-4);
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset: calc(-1 * var(--space-8));
+		}
+	}
+
+	@media (pointer: coarse) {
+		.table-sort::after {
+			top: calc(50% - var(--size-44) / 2);
+			bottom: calc(50% - var(--size-44) / 2);
+		}
+	}
+
+	@media (hover: hover) {
+		.table-sort:hover {
+			color: var(--color-unaccent-1);
+		}
 	}
 </style>

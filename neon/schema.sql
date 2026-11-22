@@ -9,7 +9,7 @@
 --   neon roles create --branch <branch> --name lyubo_app --access read_write
 -- Neon Realtime needs a primary key on every table and no row-level security.
 -- The CHECK constraints are dropped and added again, so a second run applies changed limits to
--- existing tables too. The text limits match `ColumnLimits` in `src/lib/common/limits.ts`.
+-- existing tables too. The text limits match `ColumnLimits` in `src/lib/constants/limits.ts`.
 -- =========================================================
 -- ---------------------------------------------------------
 -- collections
@@ -31,9 +31,12 @@ ALTER TABLE collections
   DROP CONSTRAINT IF EXISTS collections_name_length,
   DROP CONSTRAINT IF EXISTS collections_sort,
   ADD CONSTRAINT collections_name_length CHECK (char_length(name) <= 100),
-  -- Sorting by any other column would be an identifier from the client
+  -- Sorting by any other column would be an identifier from the client. The list is
+  -- COLLECTION_SORT_COLUMNS in `src/lib/constants/sorting.ts`. IS NOT NULL: a CHECK passes on NULL,
+  -- so `IN` alone would accept a column without a direction
   ADD CONSTRAINT collections_sort CHECK ((sort_column IS NULL AND sort_direction IS NULL)
-    OR (sort_column IN ('name', 'rating', 'favorite', 'tags', 'rated_on', 'created_at')
+    OR (sort_column IS NOT NULL AND sort_direction IS NOT NULL
+      AND sort_column IN ('name', 'rating', 'favorite', 'tags', 'rated_on', 'created_at')
       AND sort_direction IN ('asc', 'desc')));
 
 -- ---------------------------------------------------------

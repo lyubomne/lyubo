@@ -5,7 +5,7 @@
 	import { addRecord } from '$lib/entities/CollectionTable/utils';
 	import type { IAddButtonProps } from './types';
 
-	const { collectionId, focus }: IAddButtonProps = $props();
+	const { collectionId, focus, filter }: IAddButtonProps = $props();
 
 	const dbStore = getDB();
 </script>
@@ -16,5 +16,5 @@
 	aria-label="Add a record"
 	title="Add a record (N)"
 	aria-keyshortcuts="N"
-	onclick={() => void addRecord({ db: dbStore.db, collectionId, focus })}
+	onclick={() => void addRecord({ db: dbStore.db, collectionId, focus, filter })}
 />

@@ -2,7 +2,9 @@ import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { v4 as uuidv4 } from 'uuid';
 import type { TNillable } from '$lib/types';
 import { waitForElement } from '$lib/browser';
+import type { ITableSort } from '$lib/components/ui';
 import type { ICollection } from './types';
+import { validationSchema } from './validationSchema';
 
 export const UNTITLED_COLLECTION = 'Untitled collection';
 
@@ -84,6 +86,40 @@ export const moveCollection = async ({
 			}
 		}
 	});
+};
+
+const sortSchema = validationSchema.pick({ sort_column: true, sort_direction: true });
+
+// 'name asc' into its sort; '' is the default order
+export const parseSortKey = (key: string): ITableSort | null => {
+	const [column, direction] = key.split(' ');
+
+	return column && (direction === 'asc' || direction === 'desc') ? { column, direction } : null;
+};
+
+// One statement: the server's CHECK wants both columns set or both NULL after every change
+export const sortCollection = ({
+	db,
+	id,
+	sort
+}: {
+	db: TNillable<PGliteWithLive>;
+	id: string;
+	sort: ITableSort | null;
+}) => {
+	if (!db) {
+		return;
+	}
+
+	const { sort_column, sort_direction } = sortSchema.parse({
+		sort_column: sort?.column ?? null,
+		sort_direction: sort?.direction ?? null
+	});
+
+	return db.sql`
+		UPDATE collections SET sort_column = ${sort_column}, sort_direction = ${sort_direction}
+		WHERE id = ${id}
+	`;
 };
 
 // The server deletes its records and tags with it

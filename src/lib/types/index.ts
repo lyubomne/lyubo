@@ -1,4 +1,4 @@
-import type { Breakpoints, FullWidthBreakpoint } from '$lib/constants';
+import type { Breakpoints, FullWidthBreakpoint, SORT_DIRECTIONS } from '$lib/constants';
 
 export type TNillable<T> = T | null | undefined;
 
@@ -32,3 +32,5 @@ export type NonNullableRequired<T, K extends keyof T> = T & { [P in K]-?: NonNul
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
 
 export type Breakpoint = keyof typeof Breakpoints | typeof FullWidthBreakpoint;
+
+export type TSortDirection = (typeof SORT_DIRECTIONS)[number];

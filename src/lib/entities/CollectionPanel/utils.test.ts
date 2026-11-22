@@ -1,7 +1,9 @@
 import type { PGliteWithLive } from '@electric-sql/pglite/live';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { createCollection, moveCollection } from './utils';
+import { ZodError } from 'zod';
+
+import { createCollection, moveCollection, parseSortKey, sortCollection } from './utils';
 
 import {
 	COLLECTION_ID,
@@ -22,6 +24,18 @@ const readRack = async () =>
 			SELECT id, position FROM collections ORDER BY position, created_at
 		`
 	).rows;
+
+describe('parseSortKey', () => {
+	it.each([
+		{ key: 'name asc', expected: { column: 'name', direction: 'asc' } },
+		{ key: 'rated_on desc', expected: { column: 'rated_on', direction: 'desc' } },
+		{ key: '', expected: null },
+		{ key: 'name', expected: null },
+		{ key: 'name up', expected: null }
+	])('reads "$key"', ({ key, expected }) => {
+		expect(parseSortKey(key)).toEqual(expected);
+	});
+});
 
 describe('collection panel utils', () => {
 	beforeEach(async () => {
@@ -86,6 +100,40 @@ describe('collection panel utils', () => {
 
 			await moveCollection({ db, collections: await readRack(), id, offset });
 
+			expect(await readChangeLog(db)).toEqual([]);
+		});
+	});
+
+	describe('sortCollection', () => {
+		it('logs the column and the direction as one change', async () => {
+			await syncIn(db, 'collections', [serverCollection()]);
+
+			await sortCollection({ db, id: COLLECTION_ID, sort: { column: 'name', direction: 'asc' } });
+
+			expect((await readChangeLog(db)).map((change) => change.value)).toEqual([
+				{ sort_column: 'name', sort_direction: 'asc' }
+			]);
+		});
+
+		it('clears both columns for the default order', async () => {
+			await syncIn(db, 'collections', [
+				serverCollection({ sort_column: 'name', sort_direction: 'desc' })
+			]);
+
+			await sortCollection({ db, id: COLLECTION_ID, sort: null });
+
+			expect((await readChangeLog(db)).map((change) => change.value)).toEqual([
+				{ sort_column: null, sort_direction: null }
+			]);
+		});
+
+		it('writes nothing for a column the server does not sort by', async () => {
+			await syncIn(db, 'collections', [serverCollection()]);
+
+			const sort = () =>
+				sortCollection({ db, id: COLLECTION_ID, sort: { column: 'review', direction: 'asc' } });
+
+			expect(sort).toThrow(ZodError);
 			expect(await readChangeLog(db)).toEqual([]);
 		});
 	});

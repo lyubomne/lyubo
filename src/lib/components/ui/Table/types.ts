@@ -1,5 +1,4 @@
-import type { Breakpoint } from '$lib/types';
-import type { TNestedValue } from '$lib/types';
+import type { Breakpoint, TNestedValue, TSortDirection } from '$lib/types';
 import type { Snippet } from 'svelte';
 import type { TableFocus } from './focus.svelte';
 
@@ -32,6 +31,8 @@ export interface ITableColumn<TTableData extends IBaseTableData, TKey extends st
 	style?: Partial<CSSStyleDeclaration>;
 	width?: number;
 	expandableRows?: (ITableExpandableColumnConfig[] | null)[];
+	// The header becomes a key that cycles the sort of this column (`onSortChange` of the table)
+	sortable?: boolean;
 }
 
 export type ITableActionColumn<TTableData extends IBaseTableData, TKey extends IActionColumns> = {
@@ -51,6 +52,11 @@ export type ITableColumns<TTableData extends IBaseTableData> =
 	| ITableActionColumn<TTableData, 'expand'>
 	| ITableActionColumn<TTableData, 'remove'>;
 
+export interface ITableSort {
+	column: string;
+	direction: TSortDirection;
+}
+
 export interface ITableProps<TTableData extends IBaseTableData> {
 	columns: ITableColumns<TTableData>[];
 	data: TTableData[];
@@ -58,6 +64,9 @@ export interface ITableProps<TTableData extends IBaseTableData> {
 	empty?: Snippet;
 	// Lets the owner focus a field of a row, also one that is not rendered yet
 	focus?: TableFocus;
+	// The order the owner applied to `data`; null is its default order
+	sort?: ITableSort | null;
+	onSortChange?: (sort: ITableSort | null) => void;
 }
 
 export type ITableExpandableRowColumn<TTableData extends IBaseTableData> =

@@ -1,4 +1,5 @@
-import type { TableFocus } from '$lib/components/ui';
+import type { ITableSort, TableFocus } from '$lib/components/ui';
+import type { CollectionFilterStore } from '$lib/entities/CollectionFilter';
 
 export interface ICollectionTable {
 	id: string;
@@ -15,5 +16,8 @@ export interface ICollectionTable {
 
 export interface ICollectionTableProps {
 	collectionId: string;
+	filter: CollectionFilterStore;
+	sort: ITableSort | null;
+	onSortChange: (sort: ITableSort | null) => void;
 	focus?: TableFocus;
 }

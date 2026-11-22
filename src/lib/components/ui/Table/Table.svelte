@@ -7,7 +7,7 @@
 	import { throttle } from '$lib/utils';
 	import { TableFocus } from './focus.svelte';
 
-	const { columns, data, empty, focus }: ITableProps<TTableData> = $props();
+	const { columns, data, empty, focus, sort, onSortChange }: ITableProps<TTableData> = $props();
 
 	const ownFocus = new TableFocus();
 
@@ -22,7 +22,9 @@
 		columns: mainColumns,
 		data,
 		expandableRowsColumns,
-		focus: focus ?? ownFocus
+		focus: focus ?? ownFocus,
+		sort,
+		onSortChange
 	}));
 </script>
 
