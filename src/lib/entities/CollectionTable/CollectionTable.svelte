@@ -106,6 +106,10 @@
 			title: 'Rated on',
 			renderer: CollectionTableDatePickerSnippet,
 			width: 120,
+			// The date field has its own padding (DatePicker): the digits stay under the label
+			style: {
+				paddingLeft: 'var(--space-4)'
+			},
 			expandableRows: [
 				null,
 				[

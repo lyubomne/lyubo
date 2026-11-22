@@ -105,6 +105,8 @@
 			[data-date-field-input] {
 				display: flex;
 				align-items: center;
+				padding-inline: var(--space-4);
+				border-radius: var(--radius-4);
 				font-variant-numeric: tabular-nums;
 			}
 
