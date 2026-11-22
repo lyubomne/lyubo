@@ -11,18 +11,10 @@
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 
-	--color-white: oklch(1 0 0);
-	--color-dark: oklch(0.1913 0 0);
-	--color-bg: oklch(0.9401 0 0);
-	--color-surface: oklch(0.9702 0 0);
+	/* The other colors come from the theme blocks below */
 	--color-accent-1: oklch(0.6345 0.1834 39.43);
 	/* Power LED green, for the sync status only (docs/DESIGN.md) */
 	--color-indicator-on: oklch(0.72 0.17 145);
-	--color-unaccent-1: oklch(0.5795 0 0);
-	--color-unaccent-2: oklch(0.7826 0 0);
-	--color-shadow-1: oklch(0.8172 0 0);
-	--color-shadow-2: oklch(0.7476 0 0);
-	--color-shadow-3: oklch(0.9911 0 0);
 
 	--space-2: 0.125rem;
 	--space-4: 0.25rem;
@@ -78,11 +70,87 @@
 	/* Short, flat shadows: tactile, not inflated (docs/DESIGN.md) */
 	--shadow-panel: 2px 3px 8px -2px var(--color-shadow-2);
 	--shadow-key-raised: -1px -1px 2px 0 var(--color-shadow-3), 1px 1px 3px 0 var(--color-shadow-2);
-	--shadow-rim: -1px -1px 2px 0 var(--color-shadow-3), 2px 2px 4px 0 var(--color-shadow-2);
 	--shadow-key-pressed:
 		inset 1px 1px 3px 0 var(--color-shadow-2), inset -1px -1px 2px 0 var(--color-shadow-3);
 
 	--duration-fast: 150ms;
+}
+
+/*
+ * Themes: the same color tokens with other values, chosen with ThemeMenu. The names match
+ * `Themes` in $lib/constants. A theme also applies to any element with `data-theme` (the swatches
+ * in the menu), so every block sets every color token. `--color-body` is the case of panels and
+ * the bar, `--color-surface` the keys and table faces set into it.
+ */
+:root,
+[data-theme='grey'] {
+	--color-white: oklch(1 0 0);
+	--color-dark: oklch(0.1913 0 0);
+	--color-bg: oklch(0.9401 0 0);
+	--color-surface: oklch(0.9702 0 0);
+	--color-body: var(--color-surface);
+	--color-dot: oklch(0.693 0 0);
+	--color-unaccent-1: oklch(0.5795 0 0);
+	--color-unaccent-2: oklch(0.7826 0 0);
+	--color-shadow-1: oklch(0.8172 0 0);
+	--color-shadow-2: oklch(0.7476 0 0);
+	--color-shadow-3: oklch(0.9911 0 0);
+}
+
+[data-theme='warm'] {
+	--color-white: oklch(0.995 0.003 85);
+	--color-dark: oklch(0.21 0.008 60);
+	--color-bg: oklch(0.925 0.009 80);
+	--color-surface: oklch(0.975 0.005 85);
+	--color-body: var(--color-surface);
+	--color-dot: oklch(0.7 0.015 75);
+	--color-unaccent-1: oklch(0.56 0.012 70);
+	--color-unaccent-2: oklch(0.78 0.01 75);
+	--color-shadow-1: oklch(0.83 0.012 75);
+	--color-shadow-2: oklch(0.75 0.015 70);
+	--color-shadow-3: oklch(0.99 0.004 85);
+}
+
+[data-theme='white'] {
+	--color-white: oklch(1 0 0);
+	--color-dark: oklch(0.18 0.004 60);
+	--color-bg: oklch(0.885 0.008 85);
+	--color-surface: oklch(0.99 0.002 90);
+	--color-body: var(--color-surface);
+	--color-dot: oklch(0.66 0.012 75);
+	--color-unaccent-1: oklch(0.55 0.008 75);
+	--color-unaccent-2: oklch(0.78 0.008 80);
+	--color-shadow-1: oklch(0.87 0.008 80);
+	--color-shadow-2: oklch(0.74 0.012 75);
+	--color-shadow-3: oklch(1 0 0);
+}
+
+[data-theme='stone'] {
+	--color-white: oklch(0.995 0.002 90);
+	--color-dark: oklch(0.2 0.006 70);
+	--color-bg: oklch(0.955 0.004 90);
+	--color-surface: oklch(0.975 0.004 90);
+	--color-body: oklch(0.885 0.007 85);
+	--color-dot: oklch(0.55 0.01 75);
+	--color-unaccent-1: oklch(0.5 0.01 75);
+	--color-unaccent-2: oklch(0.74 0.01 80);
+	--color-shadow-1: oklch(0.82 0.01 80);
+	--color-shadow-2: oklch(0.7 0.014 75);
+	--color-shadow-3: oklch(0.99 0.003 90);
+}
+
+[data-theme='steel'] {
+	--color-white: oklch(0.995 0.002 245);
+	--color-dark: oklch(0.2 0.01 250);
+	--color-bg: oklch(0.92 0.006 245);
+	--color-surface: oklch(0.972 0.004 245);
+	--color-body: var(--color-surface);
+	--color-dot: oklch(0.68 0.014 245);
+	--color-unaccent-1: oklch(0.55 0.012 245);
+	--color-unaccent-2: oklch(0.78 0.01 245);
+	--color-shadow-1: oklch(0.83 0.01 245);
+	--color-shadow-2: oklch(0.74 0.014 245);
+	--color-shadow-3: oklch(0.99 0.003 245);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -121,10 +189,23 @@ body {
 	box-sizing: border-box;
 	/* `dvh` follows the mobile browser bars and the on-screen keyboard, `vh` does not */
 	height: 100dvh;
-	background:
-		url('../static/background.svg'),
-		linear-gradient(to bottom right, var(--color-bg), oklch(from var(--color-bg) l c h / 0.4));
+	background: linear-gradient(
+		to bottom right,
+		var(--color-bg),
+		oklch(from var(--color-bg) l c h / 0.4)
+	);
 	color: var(--color-dark);
+}
+
+/* The dot grid takes its shape from the file and its color from the theme */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background: var(--color-dot);
+	mask: url('../static/background.svg');
+	pointer-events: none;
 }
 
 input,

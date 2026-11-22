@@ -45,24 +45,14 @@
 		z-index: 10;
 	}
 
-	tr::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		border-top-left-radius: calc(var(--radius-8) - var(--border-2));
-		box-shadow:
-			0px 4px 8px -4px var(--color-shadow-1),
-			inset 8px 0 8px -8px var(--color-shadow-1),
-			inset 0 8px 8px -8px var(--color-shadow-1);
-	}
-
+	/* A step down to the rows: a shade line over the white one, as in Table's header base */
 	th {
 		text-align: left;
 		padding: var(--space-8);
 		box-sizing: border-box;
 		font-weight: normal;
 		border-bottom: var(--border-2) solid var(--color-white);
+		box-shadow: inset 0 -1px 0 0 var(--color-shadow-1);
 	}
 
 	th:first-child {

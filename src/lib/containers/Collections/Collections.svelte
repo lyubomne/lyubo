@@ -2,7 +2,7 @@
 	import { query } from '@electric-sql/pglite/template';
 	import { tick } from 'svelte';
 	import type { TNillable } from '$lib/types';
-	import { Button, PlusIcon } from '$lib/components/ui';
+	import { Button, PlusIcon, ThemeMenu } from '$lib/components/ui';
 	import { LiveDB, getDB } from '$lib/db';
 	import {
 		CollectionPanel,
@@ -105,6 +105,10 @@
 	{#if collections.length === 0}
 		<div class="collections-empty">
 			<NewCollectionSlot />
+			<!-- Without collections there is no bar: the key keeps its corner -->
+			<div class="collections-empty-theme">
+				<ThemeMenu />
+			</div>
 		</div>
 	{:else}
 		<div class="collections">
@@ -126,6 +130,7 @@
 				>
 					New collection
 				</Button>
+				<ThemeMenu />
 			</div>
 
 			<div
@@ -169,7 +174,7 @@
 		align-items: flex-start;
 		gap: var(--space-8);
 		padding: var(--space-8);
-		background: var(--color-surface);
+		background: var(--color-body);
 		border: var(--border-2) solid var(--color-white);
 		border-radius: var(--radius-16);
 		box-shadow: var(--shadow-panel);
@@ -206,10 +211,17 @@
 	}
 
 	.collections-empty {
+		position: relative;
 		display: flex;
 		justify-content: center;
 		width: 100%;
 		height: 100%;
+	}
+
+	.collections-empty-theme {
+		position: absolute;
+		top: 0;
+		right: 0;
 	}
 
 	/* Breakpoints.sm */

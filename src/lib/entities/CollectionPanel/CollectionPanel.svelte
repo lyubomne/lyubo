@@ -127,7 +127,7 @@
 		max-height: 100%;
 		min-height: 0;
 		padding: var(--space-8);
-		background: var(--color-surface);
+		background: var(--color-body);
 		border: var(--border-2) solid var(--color-white);
 		border-radius: var(--radius-16);
 		box-shadow: var(--shadow-panel);

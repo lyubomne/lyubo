@@ -23,7 +23,7 @@
 		justify-content: center;
 		gap: var(--space-8);
 		padding: var(--space-16);
-		background: var(--color-surface);
+		background: var(--color-body);
 		border: var(--border-2) dashed var(--color-unaccent-2);
 		border-radius: var(--radius-16);
 		color: var(--color-unaccent-1);

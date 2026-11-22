@@ -52,7 +52,6 @@
 		border-radius: var(--radius-8);
 		border: var(--border-2) solid var(--color-white);
 		background: var(--color-surface);
-		box-shadow: var(--shadow-rim);
 		/* Height of the sticky row in TableHead */
 		--table-head-height: calc(var(--size-24) + 2 * var(--space-8) + var(--border-2));
 		/* Lets the header base sit under the rows but over this box */
@@ -71,19 +70,22 @@
 		border-bottom: var(--border-2) solid var(--color-white);
 		border-radius: calc(var(--radius-8) - var(--border-2)) calc(var(--radius-8) - var(--border-2)) 0
 			0;
-		box-shadow:
-			0px 4px 8px -4px var(--color-shadow-1),
-			inset 0 8px 8px -8px var(--color-shadow-1);
+		box-shadow: inset 0 -1px 0 0 var(--color-shadow-1);
 		pointer-events: none;
 	}
 
+	/*
+	 * The face is one step below the rim: a hairline, no blur. Over the sticky header row
+	 * (z-index 10 in TableHead), under the calendar that DatePicker opens inside the table (20)
+	 */
 	.table:after {
 		content: '';
 		position: absolute;
 		inset: 0;
+		z-index: 15;
 		pointer-events: none;
 		border-radius: calc(var(--radius-8) - var(--border-2));
-		box-shadow: inset 8px 0 8px -8px var(--color-shadow-1);
+		box-shadow: inset 1px 1px 0 0 var(--color-shadow-1);
 	}
 
 	.table-scroll-container {
