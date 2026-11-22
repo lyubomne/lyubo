@@ -1,28 +1,30 @@
 <script lang="ts">
-	import { type DateValue } from '@internationalized/date';
 	import type { ICollectionTableDatePickerProps } from './types';
 	import { getDB, updateFieldById } from '$lib/db';
 	import { DatePicker } from '$lib/components/ui';
-	import { debounce } from '$lib/utils';
+	import { OptimisticValue } from '$lib/state';
 
 	const { value, name, rowId }: ICollectionTableDatePickerProps = $props();
 
 	const dbStore = getDB();
 
-	const commit = debounce((date: DateValue | undefined) => {
-		if (!date) {
-			return;
-		}
+	// The draft holds the digits while they are typed: a live query result does not reset them
+	const date = new OptimisticValue(() => value);
 
-		// TODO: Do not hardcode tableName, take it from context
-		void updateFieldById({
-			db: dbStore.db,
-			name,
-			value: date.toString(),
-			rowId,
-			tableName: 'lyubo'
-		});
-	});
+	const commit = async () => {
+		try {
+			await date.save((newValue) =>
+				// TODO: Do not hardcode tableName, take it from context
+				updateFieldById({ db: dbStore.db, name, value: newValue, rowId, tableName: 'lyubo' })
+			);
+		} catch (err) {
+			console.error(err);
+		}
+	};
 </script>
 
-<DatePicker {value} onValueChange={commit} />
+<DatePicker
+	value={date.value}
+	onValueChange={(newValue) => (date.value = newValue)}
+	onCommit={commit}
+/>

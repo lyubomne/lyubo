@@ -5,27 +5,93 @@
 		IconButton,
 		ArrowLeftSmallIcon,
 		ArrowRightSmallIcon,
-		CalendarSmallIcon,
 		DotSmallIcon
 	} from '$lib/components/ui';
+	import { focusNextField } from '$lib/browser';
+	import type { IDatePickerProps } from './types';
 
-	const {
-		value,
-		onValueChange
-	}: { value: string; onValueChange: (value: DateValue | undefined) => void } = $props();
+	const { value, onValueChange, onCommit }: IDatePickerProps = $props();
 
-	let localValue = $derived(parseDate(value));
+	const dateValue = $derived(parseDate(value));
+	let isOpen = $state(false);
+	let inputRef: HTMLElement | null = $state(null);
+	let contentRef: HTMLElement | null = $state(null);
+
+	const handleValueChange = (date: DateValue | undefined) => {
+		if (date) {
+			onValueChange(date.toString());
+		}
+	};
+
+	/*
+	 * Picking a day closes the calendar: that is the end of the edit. bits-ui closes it then without
+	 * `onOpenChange`; `onOpenChangeComplete` follows every close. A second save is a no-op.
+	 */
+	const handleOpenChangeComplete = (isNowOpen: boolean) => {
+		if (!isNowOpen) {
+			onCommit();
+		}
+	};
+
+	// No trigger: a click on the digits opens the calendar, the keyboard types them (Alt+↓ opens)
+	const handleKeyDown = (event: KeyboardEvent) => {
+		if (event.altKey && event.key === 'ArrowDown') {
+			event.preventDefault();
+			isOpen = true;
+		}
+
+		if (event.key === 'Enter' && inputRef) {
+			event.preventDefault();
+			isOpen = false;
+			onCommit();
+
+			const segments = inputRef.querySelectorAll<HTMLElement>(
+				'[data-segment]:not([data-segment="literal"])'
+			);
+			// The closing calendar is still in the DOM, right after the digits
+			focusNextField(
+				segments[segments.length - 1] ?? inputRef,
+				(element) => !contentRef?.contains(element)
+			);
+		}
+	};
+
+	// Moving between the digits, or into the calendar, is still the same edit
+	const handleFocusOut = (event: FocusEvent) => {
+		const next = event.relatedTarget as Node | null;
+
+		if (!inputRef?.contains(next) && !contentRef?.contains(next)) {
+			isOpen = false;
+			onCommit();
+		}
+	};
+
+	// Focus stays in the digits: the calendar is a helper next to them, not a dialog
+	const keepFocus = (event: Event) => event.preventDefault();
+
+	const handleInteractOutside = (event: PointerEvent) => {
+		if (inputRef?.contains(event.target as Node)) {
+			event.preventDefault();
+		}
+	};
 </script>
 
 <div class="datepicker">
 	<DatePicker.Root
 		weekdayFormat="short"
 		fixedWeeks={true}
-		{onValueChange}
+		value={dateValue}
+		onValueChange={handleValueChange}
+		onOpenChangeComplete={handleOpenChangeComplete}
 		locale="en-GB"
-		bind:value={localValue}
+		bind:open={isOpen}
 	>
-		<DatePicker.Input>
+		<DatePicker.Input
+			bind:ref={inputRef}
+			onpointerdown={() => (isOpen = true)}
+			onkeydown={handleKeyDown}
+			onfocusout={handleFocusOut}
+		>
 			{#snippet children({ segments })}
 				{#each segments as { part, value }, i (part + i)}
 					{#if part === 'literal'}
@@ -36,14 +102,17 @@
 						</DatePicker.Segment>
 					{/if}
 				{/each}
-				<DatePicker.Trigger>
-					{#snippet child({ props })}
-						<IconButton icon={CalendarSmallIcon} {...props} />
-					{/snippet}
-				</DatePicker.Trigger>
 			{/snippet}
 		</DatePicker.Input>
-		<DatePicker.Content sideOffset={6}>
+		<DatePicker.Content
+			bind:ref={contentRef}
+			sideOffset={6}
+			customAnchor={inputRef}
+			trapFocus={false}
+			onOpenAutoFocus={keepFocus}
+			onCloseAutoFocus={keepFocus}
+			onInteractOutside={handleInteractOutside}
+		>
 			<DatePicker.Calendar>
 				{#snippet children({ months, weekdays })}
 					<DatePicker.Header>
