@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { parseDate, type DateValue } from '@internationalized/date';
 	import { DatePicker } from 'bits-ui';
+	import { MediaQuery } from 'svelte/reactivity';
 	import {
 		IconButton,
 		ArrowLeftSmallIcon,
@@ -16,6 +17,24 @@
 	let isOpen = $state(false);
 	let inputRef: HTMLElement | null = $state(null);
 	let contentRef: HTMLElement | null = $state(null);
+
+	// Below `sm` a floating calendar cannot be pinned to the bottom: use the static part as a sheet
+	const isNarrow = new MediaQuery('width < 40rem');
+
+	/*
+	 * A click on the digits leaves focus in them: the calendar is a helper next to them. Alt+↓ and
+	 * the sheet move focus into the calendar, and it goes back to the digits when it closes, if it
+	 * came from them (a tap does not focus them, so no on-screen keyboard covers the sheet).
+	 */
+	let shouldFocusCalendar = $state(false);
+	let returnFocusTo: HTMLElement | null = null;
+
+	const open = (isFromKeyboard: boolean) => {
+		const focused = document.activeElement;
+		returnFocusTo = focused instanceof HTMLElement && inputRef?.contains(focused) ? focused : null;
+		shouldFocusCalendar = isFromKeyboard || isNarrow.current;
+		isOpen = true;
+	};
 
 	const handleValueChange = (date: DateValue | undefined) => {
 		if (date) {
@@ -33,24 +52,27 @@
 		}
 	};
 
-	// No trigger: a click on the digits opens the calendar, the keyboard types them (Alt+↓ opens)
-	const handleKeyDown = (event: KeyboardEvent) => {
+	// Before the digit gets it: an arrow key on a digit steps its value
+	const handleKeyDownCapture = (event: KeyboardEvent) => {
 		if (event.altKey && event.key === 'ArrowDown') {
 			event.preventDefault();
-			isOpen = true;
+			event.stopPropagation();
+			open(true);
 		}
+	};
 
+	const handleKeyDown = (event: KeyboardEvent) => {
 		if (event.key === 'Enter' && inputRef) {
 			event.preventDefault();
 			isOpen = false;
 			onCommit();
 
-			const segments = inputRef.querySelectorAll<HTMLElement>(
+			const digits = inputRef.querySelectorAll<HTMLElement>(
 				'[data-segment]:not([data-segment="literal"])'
 			);
-			// The closing calendar is still in the DOM, right after the digits
+			// The closing calendar is still in the DOM, at the end of the page
 			focusNextField(
-				segments[segments.length - 1] ?? inputRef,
+				digits[digits.length - 1] ?? inputRef,
 				(element) => !contentRef?.contains(element)
 			);
 		}
@@ -66,8 +88,33 @@
 		}
 	};
 
-	// Focus stays in the digits: the calendar is a helper next to them, not a dialog
-	const keepFocus = (event: Event) => event.preventDefault();
+	/*
+	 * bits-ui looks for the chosen day before the calendar has rendered it, finds none and focuses
+	 * the previous-month key instead: focus the day after the calendar renders
+	 */
+	const handleOpenAutoFocus = (event: Event) => {
+		event.preventDefault();
+
+		if (shouldFocusCalendar) {
+			requestAnimationFrame(() =>
+				contentRef?.querySelector<HTMLElement>('[data-bits-day][data-focused]')?.focus()
+			);
+		}
+	};
+
+	const handleCloseAutoFocus = (event: Event) => {
+		event.preventDefault();
+
+		if (shouldFocusCalendar) {
+			returnFocusTo?.focus();
+		}
+	};
+
+	const handleMouseDown = (event: MouseEvent) => {
+		if (isNarrow.current) {
+			event.preventDefault();
+		}
+	};
 
 	const handleInteractOutside = (event: PointerEvent) => {
 		if (inputRef?.contains(event.target as Node)) {
@@ -75,6 +122,63 @@
 		}
 	};
 </script>
+
+{#snippet Calendar()}
+	<DatePicker.Calendar>
+		{#snippet children({ months, weekdays })}
+			<DatePicker.Header>
+				<DatePicker.PrevButton>
+					{#snippet child({ props })}
+						<IconButton
+							{...props}
+							icon={ArrowLeftSmallIcon}
+							aria-label="Previous month"
+							title="Previous month"
+						/>
+					{/snippet}
+				</DatePicker.PrevButton>
+				<DatePicker.Heading />
+				<DatePicker.NextButton>
+					{#snippet child({ props })}
+						<IconButton
+							{...props}
+							icon={ArrowRightSmallIcon}
+							aria-label="Next month"
+							title="Next month"
+						/>
+					{/snippet}
+				</DatePicker.NextButton>
+			</DatePicker.Header>
+			{#each months as month (month.value)}
+				<DatePicker.Grid>
+					<DatePicker.GridHead>
+						<DatePicker.GridRow>
+							{#each weekdays as day (day)}
+								<DatePicker.HeadCell>
+									<div>{day.slice(0, 2)}</div>
+								</DatePicker.HeadCell>
+							{/each}
+						</DatePicker.GridRow>
+					</DatePicker.GridHead>
+					<DatePicker.GridBody>
+						{#each month.weeks as weekDates (weekDates)}
+							<DatePicker.GridRow>
+								{#each weekDates as date (date)}
+									<DatePicker.Cell {date} month={month.value}>
+										<DatePicker.Day>
+											<span class="today-indicator"><DotSmallIcon /></span>
+											{date.day}
+										</DatePicker.Day>
+									</DatePicker.Cell>
+								{/each}
+							</DatePicker.GridRow>
+						{/each}
+					</DatePicker.GridBody>
+				</DatePicker.Grid>
+			{/each}
+		{/snippet}
+	</DatePicker.Calendar>
+{/snippet}
 
 <div class="datepicker">
 	<DatePicker.Root
@@ -88,7 +192,9 @@
 	>
 		<DatePicker.Input
 			bind:ref={inputRef}
-			onpointerdown={() => (isOpen = true)}
+			onpointerdown={() => open(false)}
+			onmousedown={handleMouseDown}
+			onkeydowncapture={handleKeyDownCapture}
 			onkeydown={handleKeyDown}
 			onfocusout={handleFocusOut}
 		>
@@ -104,56 +210,36 @@
 				{/each}
 			{/snippet}
 		</DatePicker.Input>
-		<DatePicker.Content
-			bind:ref={contentRef}
-			sideOffset={6}
-			customAnchor={inputRef}
-			trapFocus={false}
-			onOpenAutoFocus={keepFocus}
-			onCloseAutoFocus={keepFocus}
-			onInteractOutside={handleInteractOutside}
-		>
-			<DatePicker.Calendar>
-				{#snippet children({ months, weekdays })}
-					<DatePicker.Header>
-						<DatePicker.PrevButton>
-							<IconButton icon={ArrowLeftSmallIcon} />
-						</DatePicker.PrevButton>
-						<DatePicker.Heading />
-						<DatePicker.NextButton>
-							<IconButton icon={ArrowRightSmallIcon} />
-						</DatePicker.NextButton>
-					</DatePicker.Header>
-					{#each months as month (month.value)}
-						<DatePicker.Grid>
-							<DatePicker.GridHead>
-								<DatePicker.GridRow>
-									{#each weekdays as day (day)}
-										<DatePicker.HeadCell>
-											<div>{day.slice(0, 2)}</div>
-										</DatePicker.HeadCell>
-									{/each}
-								</DatePicker.GridRow>
-							</DatePicker.GridHead>
-							<DatePicker.GridBody>
-								{#each month.weeks as weekDates (weekDates)}
-									<DatePicker.GridRow>
-										{#each weekDates as date (date)}
-											<DatePicker.Cell {date} month={month.value}>
-												<DatePicker.Day>
-													<span class="today-indicator"><DotSmallIcon /></span>
-													{date.day}
-												</DatePicker.Day>
-											</DatePicker.Cell>
-										{/each}
-									</DatePicker.GridRow>
-								{/each}
-							</DatePicker.GridBody>
-						</DatePicker.Grid>
-					{/each}
-				{/snippet}
-			</DatePicker.Calendar>
-		</DatePicker.Content>
+		<DatePicker.Portal>
+			<div class="datepicker-content">
+				{#if isNarrow.current}
+					<DatePicker.ContentStatic
+						bind:ref={contentRef}
+						class="datepicker-sheet"
+						onOpenAutoFocus={handleOpenAutoFocus}
+						onCloseAutoFocus={handleCloseAutoFocus}
+						onInteractOutside={handleInteractOutside}
+					>
+						{@render Calendar()}
+					</DatePicker.ContentStatic>
+				{:else}
+					<!-- bits-ui reads trapFocus only on mount: mount again when a click or Alt+↓ switches it -->
+					{#key shouldFocusCalendar}
+						<DatePicker.Content
+							bind:ref={contentRef}
+							sideOffset={6}
+							customAnchor={inputRef}
+							trapFocus={shouldFocusCalendar}
+							onOpenAutoFocus={handleOpenAutoFocus}
+							onCloseAutoFocus={handleCloseAutoFocus}
+							onInteractOutside={handleInteractOutside}
+						>
+							{@render Calendar()}
+						</DatePicker.Content>
+					{/key}
+				{/if}
+			</div>
+		</DatePicker.Portal>
 	</DatePicker.Root>
 </div>
 
@@ -162,14 +248,6 @@
 		display: contents;
 
 		:global {
-			th {
-				text-align: center;
-			}
-
-			td {
-				height: var(--size-32);
-			}
-
 			/* Inter's digits differ in width: tabular ones keep every date and its icon in line */
 			[data-date-field-input] {
 				display: flex;
@@ -182,9 +260,23 @@
 			[data-date-field-segment] {
 				border-radius: var(--radius-4);
 			}
+		}
+	}
+
+	.datepicker-content {
+		display: contents;
+
+		:global {
+			th {
+				text-align: center;
+			}
+
+			td {
+				height: var(--size-32);
+			}
 
 			[data-bits-floating-content-wrapper] {
-				z-index: 20 !important;
+				z-index: 30 !important;
 			}
 
 			[data-calendar-root] {
@@ -248,6 +340,47 @@
 
 				svg {
 					fill: var(--color-dark);
+				}
+			}
+
+			/* The sheet is the body; the calendar in it is only its content */
+			.datepicker-sheet {
+				position: fixed;
+				inset: auto 0 0;
+				z-index: 30;
+				padding: var(--space-8) calc(var(--space-8) + var(--space-safe-right))
+					calc(var(--space-8) + var(--space-safe-bottom))
+					calc(var(--space-8) + var(--space-safe-left));
+				background: var(--color-surface);
+				border: var(--border-2) solid var(--color-white);
+				border-radius: var(--radius-16) var(--radius-16) 0 0;
+				box-shadow: var(--shadow-panel);
+				font-size: var(--font-16);
+
+				[data-calendar-root] {
+					max-width: var(--size-448);
+					margin-inline: auto;
+					padding: 0;
+					background: none;
+					border: none;
+					box-shadow: none;
+				}
+
+				[data-calendar-grid] {
+					width: 100%;
+				}
+
+				[data-calendar-head-cell] {
+					width: auto;
+				}
+
+				td {
+					height: var(--size-44);
+				}
+
+				:is([data-calendar-prev-button], [data-calendar-next-button]) {
+					min-width: var(--size-44);
+					height: var(--size-44);
 				}
 			}
 		}

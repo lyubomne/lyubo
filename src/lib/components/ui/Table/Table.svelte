@@ -74,10 +74,7 @@
 		pointer-events: none;
 	}
 
-	/*
-	 * The face is one step below the rim: a hairline, no blur. Over the sticky header row
-	 * (z-index 10 in TableHead), under the calendar that DatePicker opens inside the table (20)
-	 */
+	/* The face is one step below the rim: a hairline, no blur. Over the sticky header row (TableHead) */
 	.table:after {
 		content: '';
 		position: absolute;
